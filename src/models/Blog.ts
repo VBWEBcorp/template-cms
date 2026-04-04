@@ -21,6 +21,8 @@ export interface IBlogSettings extends Document {
   enabled: boolean
   title: string
   description?: string
+  eyebrow?: string
+  heroImage?: string
   categories: string[]
   updatedAt: Date
 }
@@ -46,8 +48,10 @@ const BlogPostSchema = new Schema<IBlogPost>(
 const BlogSettingsSchema = new Schema<IBlogSettings>(
   {
     enabled: { type: Boolean, default: false },
-    title: { type: String, default: 'Blog' },
-    description: String,
+    title: { type: String, default: 'Nos dernières actualités' },
+    description: { type: String, default: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.' },
+    eyebrow: { type: String, default: 'Blog' },
+    heroImage: String,
     categories: [{ type: String }],
   },
   { timestamps: true }

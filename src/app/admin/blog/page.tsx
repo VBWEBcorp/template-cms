@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ImageField } from '@/components/admin/field-editor'
 import { cn } from '@/lib/utils'
 
 interface BlogPost {
@@ -31,6 +32,8 @@ interface BlogSettings {
   enabled: boolean
   title: string
   description?: string
+  eyebrow?: string
+  heroImage?: string
   categories?: string[]
 }
 
@@ -39,7 +42,7 @@ type Tab = 'articles' | 'settings'
 export default function AdminBlogPage() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('articles')
-  const [settings, setSettings] = useState<BlogSettings>({ enabled: false, title: 'Blog', categories: [] })
+  const [settings, setSettings] = useState<BlogSettings>({ enabled: false, title: 'Nos dernières actualités', eyebrow: 'Blog', description: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.', heroImage: '', categories: [] })
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -404,10 +407,24 @@ export default function AdminBlogPage() {
           <div className="rounded-xl bg-card border border-border/40 overflow-hidden">
             <div className="px-5 py-3 border-b border-border/40 bg-muted/30">
               <h3 className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
-                Apparence de la page Blog
+                Section d&apos;en-tête (Hero)
               </h3>
             </div>
             <div className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Petit texte au-dessus du titre
+                </Label>
+                <Input
+                  value={settings.eyebrow || ''}
+                  onChange={(e) => setSettings({ ...settings, eyebrow: e.target.value })}
+                  placeholder="Blog"
+                />
+                <p className="text-[11px] text-muted-foreground/60">
+                  Le mot ou la phrase courte en violet au-dessus du titre principal
+                </p>
+              </div>
+
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Titre principal
@@ -415,26 +432,37 @@ export default function AdminBlogPage() {
                 <Input
                   value={settings.title}
                   onChange={(e) => setSettings({ ...settings, title: e.target.value })}
-                  placeholder="Blog"
+                  placeholder="Nos dernières actualités"
                 />
                 <p className="text-[11px] text-muted-foreground/60">
-                  Le grand titre affiché en haut de la page blog
+                  Le grand titre affiché dans la section d&apos;en-tête
                 </p>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Sous-titre / Description
+                  Description
                 </Label>
-                <Input
+                <textarea
                   value={settings.description || ''}
                   onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                  placeholder="Nos derniers articles, conseils et actualités"
+                  placeholder="Retrouvez nos conseils, nos projets récents et les tendances du secteur."
+                  rows={2}
+                  className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-y"
                 />
                 <p className="text-[11px] text-muted-foreground/60">
-                  Texte affiché sous le titre pour expliquer le contenu du blog
+                  Le texte explicatif sous le titre
                 </p>
               </div>
+
+              <ImageField
+                label="Image de fond du Hero"
+                value={settings.heroImage || ''}
+                onChange={(v) => setSettings({ ...settings, heroImage: v })}
+              />
+              <p className="text-[11px] text-muted-foreground/60 -mt-2">
+                Image affichée en arrière-plan de la section d&apos;en-tête. Laissez vide pour un fond uni.
+              </p>
             </div>
           </div>
 

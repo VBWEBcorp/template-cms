@@ -42,7 +42,7 @@ const UserSchema = new Schema<IUser>(
 )
 
 // Hash password before saving
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function (this: any, next: any) {
   if (!this.isModified('password')) return next()
 
   try {
@@ -50,7 +50,7 @@ UserSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt)
     next()
   } catch (error) {
-    next(error as any)
+    next(error)
   }
 })
 

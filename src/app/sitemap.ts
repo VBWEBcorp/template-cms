@@ -1,11 +1,14 @@
 import type { MetadataRoute } from 'next'
 
 import { siteConfig } from '@/lib/seo'
+import { connectDB } from '@/lib/db'
+import { BlogPost, BlogSettings } from '@/models/Blog'
+import { GallerySettings } from '@/models/Gallery'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = siteConfig.url
+const baseUrl = siteConfig.url
 
-  return [
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -31,4 +34,45 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
   ]
+
+  try {
+    await connectDB()
+
+    // Gallery page if enabled
+    const gallerySettings = await GallerySettings.findOne()
+    if (gallerySettings?.enabled) {
+      pages.push({
+        url: `${baseUrl}/gallery`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      })
+    }
+
+    // Blog pages if enabled
+    const blogSettings = await BlogSettings.findOne()
+    if (blogSettings?.enabled) {
+      pages.push({
+        url: `${baseUrl}/blog`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      })
+
+      // Individual blog posts
+      const posts = await BlogPost.find({ published: true }).select('slug updatedAt publishedAt')
+      for (const post of posts) {
+        pages.push({
+          url: `${baseUrl}/blog/${post.slug}`,
+          lastModified: new Date(post.updatedAt || post.publishedAt),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Sitemap generation error:', error)
+  }
+
+  return pages
 }

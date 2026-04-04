@@ -23,29 +23,10 @@ interface BlogPost {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-function estimateReadTime(text: string) {
+function estimateReadTime(html: string) {
+  const text = html.replace(/<[^>]*>/g, '')
   const words = text.trim().split(/\s+/).length
   return Math.max(1, Math.ceil(words / 200))
-}
-
-function renderMarkdown(text: string) {
-  return text
-    // Headers
-    .replace(/^### (.+)$/gm, '<h3 class="font-display text-lg font-semibold text-foreground mt-8 mb-3">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="font-display text-xl font-bold text-foreground mt-10 mb-4">$1</h2>')
-    // Bold and italic
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Links
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-primary underline underline-offset-4 hover:text-primary/80" target="_blank" rel="noopener noreferrer">$1</a>')
-    // Images
-    .replace(/!\[(.+?)\]\((.+?)\)/g, '<figure class="my-8"><img src="$2" alt="$1" class="rounded-xl w-full" /><figcaption class="text-center text-xs text-muted-foreground mt-2">$1</figcaption></figure>')
-    // Unordered lists
-    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-muted-foreground">$1</li>')
-    // Paragraphs (double newline)
-    .replace(/\n\n/g, '</p><p class="text-muted-foreground leading-relaxed mb-4">')
-    // Single newline in context
-    .replace(/\n/g, '<br />')
 }
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -68,8 +49,6 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           return
         }
         setPost(data)
-
-        // Update page title
         document.title = data.metaTitle || data.title
       } catch {
         setNotFound(true)
@@ -156,7 +135,6 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
           {/* Header */}
           <header className="space-y-4 mb-10">
-            {/* Meta */}
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               {post.category && (
                 <span className="font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full text-xs">
@@ -179,12 +157,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
               )}
             </div>
 
-            {/* Title */}
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-tight">
               {post.title}
             </h1>
 
-            {/* Excerpt */}
             {post.excerpt && (
               <p className="text-lg text-muted-foreground leading-relaxed">
                 {post.excerpt}
@@ -192,12 +168,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             )}
           </header>
 
-          {/* Article body */}
+          {/* Article body — rendered HTML from TipTap */}
           <div
-            className="prose-custom text-sm leading-relaxed pb-16"
-            dangerouslySetInnerHTML={{
-              __html: `<p class="text-muted-foreground leading-relaxed mb-4">${renderMarkdown(post.content)}</p>`,
-            }}
+            className="blog-content pb-16"
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
           {/* Tags */}
@@ -238,6 +212,98 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           </div>
         </motion.div>
       </div>
+
+      {/* Blog content styles */}
+      <style jsx global>{`
+        .blog-content {
+          font-size: 0.9375rem;
+          line-height: 1.8;
+          color: var(--muted-foreground);
+        }
+        .blog-content h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 2.5rem;
+          margin-bottom: 0.75rem;
+          color: var(--foreground);
+          font-family: var(--font-display);
+          line-height: 1.3;
+        }
+        .blog-content h3 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin-top: 2rem;
+          margin-bottom: 0.5rem;
+          color: var(--foreground);
+          font-family: var(--font-display);
+          line-height: 1.4;
+        }
+        .blog-content p {
+          margin-bottom: 1.25rem;
+        }
+        .blog-content strong {
+          font-weight: 600;
+          color: var(--foreground);
+        }
+        .blog-content em {
+          font-style: italic;
+        }
+        .blog-content a {
+          color: hsl(var(--primary));
+          text-decoration: underline;
+          text-underline-offset: 4px;
+        }
+        .blog-content a:hover {
+          opacity: 0.8;
+        }
+        .blog-content ul,
+        .blog-content ol {
+          padding-left: 1.5rem;
+          margin-bottom: 1.25rem;
+        }
+        .blog-content ul { list-style: disc; }
+        .blog-content ol { list-style: decimal; }
+        .blog-content li {
+          margin-bottom: 0.4rem;
+        }
+        .blog-content blockquote {
+          border-left: 3px solid hsl(var(--primary));
+          padding: 0.75rem 1.25rem;
+          margin: 1.5rem 0;
+          font-style: italic;
+          background: var(--muted);
+          border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .blog-content hr {
+          border: none;
+          border-top: 1px solid var(--border);
+          margin: 2rem 0;
+        }
+        .blog-content img {
+          border-radius: 0.75rem;
+          max-width: 100%;
+          height: auto;
+          margin: 1.5rem 0;
+        }
+        .blog-content pre {
+          background: var(--muted);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          overflow-x: auto;
+          margin: 1.5rem 0;
+          font-size: 0.8125rem;
+        }
+        .blog-content code {
+          background: var(--muted);
+          padding: 0.15rem 0.4rem;
+          border-radius: 0.25rem;
+          font-size: 0.85em;
+        }
+        .blog-content pre code {
+          background: none;
+          padding: 0;
+        }
+      `}</style>
     </article>
   )
 }

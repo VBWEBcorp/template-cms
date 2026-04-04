@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageField } from '@/components/admin/field-editor'
+import { RichEditor } from '@/components/admin/rich-editor'
 
 interface BlogPost {
   _id?: string
@@ -270,15 +271,13 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Texte complet
               </Label>
-              <textarea
-                value={post.content}
-                onChange={(e) => updateField('content', e.target.value)}
-                placeholder="Rédigez votre article ici. Vous pouvez utiliser du Markdown pour la mise en forme :&#10;&#10;## Sous-titre&#10;&#10;Texte en **gras** ou en *italique*&#10;&#10;- Liste à puces&#10;- Autre élément&#10;&#10;[Lien](https://example.com)"
-                rows={16}
-                className="w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-3 text-sm leading-relaxed font-mono transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-y"
+              <RichEditor
+                content={post.content}
+                onChange={(html) => updateField('content', html)}
+                placeholder="Commencez à rédiger votre article..."
               />
               <p className="text-[11px] text-muted-foreground/60">
-                Vous pouvez utiliser le format Markdown pour mettre en forme votre texte.
+                Utilisez la barre d&apos;outils pour mettre en forme : titres, gras, listes, liens, images...
               </p>
             </div>
           </div>

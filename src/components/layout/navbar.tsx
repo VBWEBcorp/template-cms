@@ -4,23 +4,53 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import { Logo } from '@/components/layout/logo'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const links = [
+interface NavLink {
+  to: string
+  label: string
+}
+
+const staticLinks: NavLink[] = [
   { to: '/', label: 'Accueil' },
   { to: '/a-propos', label: 'À propos' },
   { to: '/services', label: 'Services' },
   { to: '/contact', label: 'Contact' },
-] as const
+]
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
+  const [links, setLinks] = useState<NavLink[]>(staticLinks)
   const pathname = usePathname()
+
+  // Vérifier si la galerie est activée et l'ajouter aux liens
+  useEffect(() => {
+    const checkGallery = async () => {
+      try {
+        const response = await fetch('/api/gallery/settings')
+        const settings = await response.json()
+
+        if (settings.enabled) {
+          setLinks([
+            { to: '/', label: 'Accueil' },
+            { to: '/a-propos', label: 'À propos' },
+            { to: '/services', label: 'Services' },
+            { to: '/gallery', label: 'Galerie' },
+            { to: '/contact', label: 'Contact' },
+          ])
+        }
+      } catch (error) {
+        console.error('Failed to check gallery:', error)
+      }
+    }
+
+    checkGallery()
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/75 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">

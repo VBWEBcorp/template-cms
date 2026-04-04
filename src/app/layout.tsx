@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 
-import { FloatingCallButton } from '@/components/floating-call-button'
-import { Footer } from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { TopBar } from '@/components/layout/top-bar'
+import { RootWrapper } from '@/components/layout/root-wrapper'
 import { ThemeScript } from '@/components/theme/theme-script'
 import { siteConfig } from '@/lib/seo'
 
@@ -82,11 +79,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="flex min-h-dvh flex-col">
-        <TopBar />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <FloatingCallButton />
+        <RootWrapper>{children}</RootWrapper>
       </body>
     </html>
   )

@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Images,
   ArrowRight,
+  FileText,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -26,6 +27,7 @@ const modules = [
   { href: '/admin/pages/contact', label: 'Contact', desc: 'Formulaire, coordonnées', icon: Phone },
   { href: '/admin/pages/temoignages', label: 'Témoignages', desc: 'Avis clients', icon: MessageSquare },
   { href: '/admin/gallery', label: 'Galerie', desc: 'Photos du site', icon: Images },
+  { href: '/admin/blog', label: 'Blog', desc: 'Articles et actualités', icon: FileText },
 ]
 
 const ease = [0.22, 1, 0.36, 1] as const

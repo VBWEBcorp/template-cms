@@ -28,28 +28,34 @@ export function Navbar() {
   const [links, setLinks] = useState<NavLink[]>(staticLinks)
   const pathname = usePathname()
 
-  // Vérifier si la galerie est activée et l'ajouter aux liens
+  // Vérifier si la galerie et le blog sont activés
   useEffect(() => {
-    const checkGallery = async () => {
+    const checkFeatures = async () => {
       try {
-        const response = await fetch('/api/gallery/settings')
-        const settings = await response.json()
+        const [galleryRes, blogRes] = await Promise.all([
+          fetch('/api/gallery/settings'),
+          fetch('/api/blog/settings'),
+        ])
+        const gallery = await galleryRes.json()
+        const blog = await blogRes.json()
 
-        if (settings.enabled) {
-          setLinks([
-            { to: '/', label: 'Accueil' },
-            { to: '/a-propos', label: 'À propos' },
-            { to: '/services', label: 'Services' },
-            { to: '/gallery', label: 'Galerie' },
-            { to: '/contact', label: 'Contact' },
-          ])
-        }
+        const dynamicLinks: NavLink[] = [
+          { to: '/', label: 'Accueil' },
+          { to: '/a-propos', label: 'À propos' },
+          { to: '/services', label: 'Services' },
+        ]
+
+        if (gallery.enabled) dynamicLinks.push({ to: '/gallery', label: 'Galerie' })
+        if (blog.enabled) dynamicLinks.push({ to: '/blog', label: 'Blog' })
+
+        dynamicLinks.push({ to: '/contact', label: 'Contact' })
+        setLinks(dynamicLinks)
       } catch (error) {
-        console.error('Failed to check gallery:', error)
+        console.error('Failed to check features:', error)
       }
     }
 
-    checkGallery()
+    checkFeatures()
   }, [])
 
   return (

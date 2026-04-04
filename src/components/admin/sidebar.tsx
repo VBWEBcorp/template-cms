@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ExternalLink,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from '@/components/admin/sidebar-context'
@@ -29,6 +30,7 @@ const pageItems = [
   { href: '/admin/pages/contact', label: 'Contact', icon: Phone },
   { href: '/admin/pages/temoignages', label: 'Témoignages', icon: MessageSquare },
   { href: '/admin/gallery', label: 'Galerie', icon: Images },
+  { href: '/admin/blog', label: 'Blog', icon: FileText },
 ]
 
 function NavLink({

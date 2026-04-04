@@ -10,7 +10,7 @@ export async function GET() {
     const settings = await GallerySettings.findOne()
 
     if (!settings) {
-      return NextResponse.json({ enabled: false, title: 'Galerie' })
+      return NextResponse.json({ enabled: false, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.' })
     }
 
     return NextResponse.json(settings)
@@ -29,15 +29,16 @@ export async function PUT(request: NextRequest) {
     }
 
     await connectDB()
-    const { enabled, title, description } = await request.json()
+    const body = await request.json()
 
     let settings = await GallerySettings.findOne()
     if (!settings) {
-      settings = await GallerySettings.create({ enabled, title, description })
+      settings = await GallerySettings.create(body)
     } else {
-      settings.enabled = enabled
-      settings.title = title
-      settings.description = description
+      const fields = ['enabled', 'title', 'description', 'eyebrow', 'heroImage']
+      for (const field of fields) {
+        if (body[field] !== undefined) (settings as any)[field] = body[field]
+      }
       await settings.save()
     }
 

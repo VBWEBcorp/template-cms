@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ImageField } from '@/components/admin/field-editor'
 
 interface GalleryImage {
   _id: string
@@ -24,11 +25,13 @@ interface GallerySettings {
   enabled: boolean
   title: string
   description?: string
+  eyebrow?: string
+  heroImage?: string
 }
 
 export default function AdminGalleryPage() {
   const router = useRouter()
-  const [settings, setSettings] = useState<GallerySettings>({ enabled: false, title: 'Galerie' })
+  const [settings, setSettings] = useState<GallerySettings>({ enabled: false, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.', heroImage: '' })
   const [images, setImages] = useState<GalleryImage[]>([])
   const [newImage, setNewImage] = useState({ title: '', description: '', imageUrl: '', category: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -180,45 +183,75 @@ export default function AdminGalleryPage() {
         </Link>
         <h1 className="text-lg font-bold text-foreground">Galerie Photos</h1>
       </div>
-      {/* Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Paramètres de la galerie</CardTitle>
-          <CardDescription>Activez/désactivez la galerie et modifiez ses informations</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Label htmlFor="enabled" className="flex items-center gap-2 cursor-pointer">
-              <input
-                id="enabled"
-                type="checkbox"
-                checked={settings.enabled}
-                onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-                className="size-4"
-              />
-              <span>Galerie activée</span>
+      {/* Settings - Hero */}
+      <div className="rounded-xl bg-card border border-border/40 overflow-hidden max-w-2xl">
+        <div className="px-5 py-3 border-b border-border/40 bg-muted/30 flex items-center justify-between">
+          <h3 className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
+            Section d&apos;en-tête (Hero)
+          </h3>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <div
+              className={`relative w-9 h-5 rounded-full transition-colors ${settings.enabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+              onClick={() => {
+                const newSettings = { ...settings, enabled: !settings.enabled }
+                setSettings(newSettings)
+                const token = localStorage.getItem('authToken')
+                fetch('/api/gallery/settings', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify(newSettings),
+                })
+              }}
+            >
+              <div className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform ${settings.enabled ? 'translate-x-4' : ''}`} />
+            </div>
+            <span className="text-xs text-muted-foreground">{settings.enabled ? 'Visible' : 'Masquée'}</span>
+          </label>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Petit texte au-dessus du titre
             </Label>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="galleryTitle">Titre</Label>
             <Input
-              id="galleryTitle"
-              value={settings.title}
-              onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+              value={settings.eyebrow || ''}
+              onChange={(e) => setSettings({ ...settings, eyebrow: e.target.value })}
               placeholder="Galerie"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="galleryDesc">Description</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Titre principal
+            </Label>
             <Input
-              id="galleryDesc"
-              value={settings.description || ''}
-              onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-              placeholder="Description optionnelle"
+              value={settings.title}
+              onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+              placeholder="Nos réalisations"
             />
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Description
+            </Label>
+            <textarea
+              value={settings.description || ''}
+              onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+              placeholder="Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire."
+              rows={2}
+              className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-y"
+            />
+          </div>
+
+          <ImageField
+            label="Image de fond du Hero"
+            value={settings.heroImage || ''}
+            onChange={(v) => setSettings({ ...settings, heroImage: v })}
+          />
+          <p className="text-[11px] text-muted-foreground/60 -mt-2">
+            Image affichée en arrière-plan de la section d&apos;en-tête. Laissez vide pour un fond uni.
+          </p>
 
           <Button
             onClick={handleSaveSettings}
@@ -228,8 +261,8 @@ export default function AdminGalleryPage() {
             <Check className="size-4" />
             {saving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Add Image */}
       <Card>

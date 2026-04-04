@@ -21,6 +21,7 @@ export interface IBlogSettings extends Document {
   enabled: boolean
   title: string
   description?: string
+  categories: string[]
   updatedAt: Date
 }
 
@@ -47,6 +48,7 @@ const BlogSettingsSchema = new Schema<IBlogSettings>(
     enabled: { type: Boolean, default: false },
     title: { type: String, default: 'Blog' },
     description: String,
+    categories: [{ type: String }],
   },
   { timestamps: true }
 )

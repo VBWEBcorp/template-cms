@@ -25,15 +25,16 @@ export async function PUT(request: NextRequest) {
     }
 
     await connectDB()
-    const { enabled, title, description } = await request.json()
+    const { enabled, title, description, categories } = await request.json()
 
     let settings = await BlogSettings.findOne()
     if (!settings) {
-      settings = await BlogSettings.create({ enabled, title, description })
+      settings = await BlogSettings.create({ enabled, title, description, categories })
     } else {
       settings.enabled = enabled
       settings.title = title
       settings.description = description
+      if (categories !== undefined) settings.categories = categories
       await settings.save()
     }
 

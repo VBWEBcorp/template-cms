@@ -50,11 +50,17 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [tagsInput, setTagsInput] = useState('')
+  const [categories, setCategories] = useState<string[]>([])
 
   useEffect(() => {
     if (!localStorage.getItem('authToken')) {
       router.push('/admin/login')
     }
+    // Fetch categories from settings
+    fetch('/api/blog/settings')
+      .then((r) => r.json())
+      .then((s) => setCategories(s.categories || []))
+      .catch(() => {})
   }, [router])
 
   useEffect(() => {
@@ -296,11 +302,29 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Catégorie
                 </Label>
-                <Input
-                  value={post.category}
-                  onChange={(e) => updateField('category', e.target.value)}
-                  placeholder="Ex : Conseils, Actualités, Tutoriel..."
-                />
+                {categories.length > 0 ? (
+                  <select
+                    value={post.category}
+                    onChange={(e) => updateField('category', e.target.value)}
+                    className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <option value="">Choisir une catégorie</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    value={post.category}
+                    onChange={(e) => updateField('category', e.target.value)}
+                    placeholder="Ex : Conseils, Actualités, Tutoriel..."
+                  />
+                )}
+                <p className="text-[11px] text-muted-foreground/60">
+                  {categories.length > 0
+                    ? 'Les catégories se gèrent dans l\'onglet "Page & Catégories"'
+                    : 'Saisissez une catégorie ou créez-en depuis les paramètres du blog'}
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

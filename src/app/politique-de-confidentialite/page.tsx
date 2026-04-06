@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { siteConfig } from '@/lib/seo'
 
 const description =
-  'Politique de confidentialité — découvrez comment nous collectons, utilisons et protégeons vos données personnelles conformément au RGPD.'
+  'Politique de confidentialité : découvrez comment nous collectons, utilisons et protégeons vos données personnelles conformément au RGPD.'
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité',
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
                 vos données personnelles. La présente politique de
                 confidentialité décrit les données que nous collectons, pourquoi
                 nous les collectons et comment nous les utilisons, conformément
-                au Règlement Général sur la Protection des Données (RGPD —
+                au Règlement Général sur la Protection des Données (RGPD,
                 Règlement UE 2016/679) et à la loi Informatique et Libertés
                 n°78-17 du 6 janvier 1978 modifiée.
               </p>
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
                     </tr>
                     <tr>
                       <td className="py-2.5 pr-4">Hébergement</td>
-                      <td className="py-2.5 pr-4">[Vercel / OVH / autre — à compléter]</td>
+                      <td className="py-2.5 pr-4">[Vercel / OVH / autre - à compléter]</td>
                       <td className="py-2.5 pr-4">Hébergement du site et des API</td>
                       <td className="py-2.5">[À compléter]</td>
                     </tr>
@@ -326,14 +326,14 @@ export default function PrivacyPage() {
               <h2>9. Vos droits</h2>
               <p>Conformément au RGPD (articles 15 à 22) et à la loi Informatique et Libertés, vous disposez des droits suivants :</p>
               <ul className="list-inside list-disc space-y-1 pl-1">
-                <li><strong>Droit d&apos;accès (art. 15)</strong> — obtenir la confirmation du traitement de vos données et en recevoir une copie</li>
-                <li><strong>Droit de rectification (art. 16)</strong> — corriger des données inexactes ou incomplètes</li>
-                <li><strong>Droit à l&apos;effacement (art. 17)</strong> — demander la suppression de vos données (&quot;droit à l&apos;oubli&quot;)</li>
-                <li><strong>Droit à la limitation (art. 18)</strong> — restreindre temporairement le traitement de vos données</li>
-                <li><strong>Droit à la portabilité (art. 20)</strong> — recevoir vos données dans un format structuré, couramment utilisé et lisible par machine</li>
-                <li><strong>Droit d&apos;opposition (art. 21)</strong> — vous opposer au traitement de vos données pour des motifs légitimes</li>
-                <li><strong>Droit de retirer votre consentement</strong> — à tout moment, sans affecter la licéité du traitement antérieur</li>
-                <li><strong>Droit de définir des directives post-mortem</strong> — définir le sort de vos données après votre décès (art. 85 loi Informatique et Libertés)</li>
+                <li><strong>Droit d&apos;accès (art. 15)</strong> :obtenir la confirmation du traitement de vos données et en recevoir une copie</li>
+                <li><strong>Droit de rectification (art. 16)</strong> :corriger des données inexactes ou incomplètes</li>
+                <li><strong>Droit à l&apos;effacement (art. 17)</strong> :demander la suppression de vos données (&quot;droit à l&apos;oubli&quot;)</li>
+                <li><strong>Droit à la limitation (art. 18)</strong> :restreindre temporairement le traitement de vos données</li>
+                <li><strong>Droit à la portabilité (art. 20)</strong> :recevoir vos données dans un format structuré, couramment utilisé et lisible par machine</li>
+                <li><strong>Droit d&apos;opposition (art. 21)</strong> :vous opposer au traitement de vos données pour des motifs légitimes</li>
+                <li><strong>Droit de retirer votre consentement</strong> : à tout moment, sans affecter la licéité du traitement antérieur</li>
+                <li><strong>Droit de définir des directives post-mortem</strong> : définir le sort de vos données après votre décès (art. 85 loi Informatique et Libertés)</li>
               </ul>
               <p>
                 Pour exercer vos droits, contactez-nous par email à{' '}
@@ -349,7 +349,7 @@ export default function PrivacyPage() {
                 <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-4 hover:text-primary/80">
                   CNIL
                 </a>{' '}
-                (Commission Nationale de l&apos;Informatique et des Libertés — 3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07).
+                (Commission Nationale de l&apos;Informatique et des Libertés, 3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07).
               </p>
             </section>
 

@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { siteConfig } from '@/lib/seo'
 
 const description =
-  "Mentions légales du site — informations sur l'éditeur, l'hébergement, la propriété intellectuelle et les conditions d'utilisation."
+  "Mentions légales du site : informations sur l'éditeur, l'hébergement, la propriété intellectuelle et les conditions d'utilisation."
 
 export const metadata: Metadata = {
   title: 'Mentions légales',
@@ -54,11 +54,11 @@ export default function LegalPage() {
               </p>
               <ul className="list-inside list-disc space-y-1 pl-1">
                 <li><strong>Raison sociale :</strong> {siteConfig.name}</li>
-                <li><strong>Forme juridique :</strong> [SARL / SAS / EI / Auto-entrepreneur — à compléter]</li>
+                <li><strong>Forme juridique :</strong> [SARL / SAS / EI / Auto-entrepreneur - à compléter]</li>
                 <li><strong>Capital social :</strong> [Montant] € (si applicable)</li>
                 <li><strong>SIRET :</strong> [N° SIRET à compléter]</li>
                 <li><strong>RCS :</strong> [Ville] B [N° RCS] (si applicable)</li>
-                <li><strong>N° TVA intracommunautaire :</strong> [FR XX XXXXXXXXX — à compléter]</li>
+                <li><strong>N° TVA intracommunautaire :</strong> [FR XX XXXXXXXXX - à compléter]</li>
                 <li>
                   <strong>Siège social :</strong> {siteConfig.address.street},{' '}
                   {siteConfig.address.postalCode} {siteConfig.address.city}
@@ -67,7 +67,7 @@ export default function LegalPage() {
                 <li><strong>Email :</strong> {siteConfig.email}</li>
               </ul>
               <p>
-                <strong>Directeur de la publication :</strong> [Nom et prénom du responsable — à compléter]
+                <strong>Directeur de la publication :</strong> [Nom et prénom du responsable - à compléter]
               </p>
             </section>
 
@@ -75,15 +75,15 @@ export default function LegalPage() {
               <h2>2. Hébergement</h2>
               <p>Le site est hébergé par :</p>
               <ul className="list-inside list-disc space-y-1 pl-1">
-                <li><strong>Raison sociale :</strong> [Vercel Inc. / OVHcloud / autre — à compléter]</li>
+                <li><strong>Raison sociale :</strong> [Vercel Inc. / OVHcloud / autre - à compléter]</li>
                 <li><strong>Adresse :</strong> [Adresse de l&apos;hébergeur]</li>
                 <li><strong>Site web :</strong> [URL de l&apos;hébergeur]</li>
               </ul>
               <h3 className="pt-2">Services techniques complémentaires</h3>
               <ul className="list-inside list-disc space-y-1 pl-1">
-                <li><strong>Base de données :</strong> MongoDB Atlas (MongoDB Inc.) — Serveurs en Union européenne</li>
-                <li><strong>Stockage de fichiers :</strong> Cloudflare R2 (Cloudflare Inc.) — Stockage objet compatible S3, serveurs en Europe</li>
-                <li><strong>CDN et sécurité réseau :</strong> Cloudflare (Cloudflare Inc.) — Réseau de diffusion de contenu mondial</li>
+                <li><strong>Base de données :</strong> MongoDB Atlas (MongoDB Inc.) - Serveurs en Union européenne</li>
+                <li><strong>Stockage de fichiers :</strong> Cloudflare R2 (Cloudflare Inc.) - Stockage objet compatible S3, serveurs en Europe</li>
+                <li><strong>CDN et sécurité réseau :</strong> Cloudflare (Cloudflare Inc.) - Réseau de diffusion de contenu mondial</li>
               </ul>
             </section>
 
@@ -94,8 +94,8 @@ export default function LegalPage() {
                 technologies utilisées pour le fonctionnement de ce site :
               </p>
               <ul className="list-inside list-disc space-y-1 pl-1">
-                <li><strong>Framework :</strong> Next.js 15 (React 19) — framework open source développé par Vercel</li>
-                <li><strong>Langage :</strong> TypeScript — surensemble typé de JavaScript</li>
+                <li><strong>Framework :</strong> Next.js 15 (React 19) - framework open source développé par Vercel</li>
+                <li><strong>Langage :</strong> TypeScript - surensemble typé de JavaScript</li>
                 <li><strong>Interface :</strong> Tailwind CSS, Shadcn/UI, Framer Motion</li>
                 <li><strong>Base de données :</strong> MongoDB avec Mongoose (ODM)</li>
                 <li><strong>Authentification :</strong> JSON Web Tokens (JWT) avec hachage bcrypt</li>
@@ -187,13 +187,13 @@ export default function LegalPage() {
                 Les présentes mentions légales sont régies par le droit français.
                 En cas de litige, et après l&apos;échec de toute tentative de
                 résolution amiable dans un délai de 30 jours, les tribunaux
-                compétents du ressort de [Ville — à compléter] seront seuls
+                compétents du ressort de [Ville - à compléter] seront seuls
                 compétents.
               </p>
               <p>
                 Conformément à l&apos;article L.612-1 du Code de la consommation,
                 le consommateur a le droit de recourir gratuitement à un médiateur
-                de la consommation. Médiateur : [Nom et coordonnées du médiateur — à compléter].
+                de la consommation. Médiateur : [Nom et coordonnées du médiateur - à compléter].
               </p>
               <p>
                 Plateforme de règlement en ligne des litiges de la Commission européenne :{' '}
@@ -213,7 +213,7 @@ export default function LegalPage() {
               <ul className="list-inside list-disc space-y-1 pl-1">
                 <li><strong>Conception et développement :</strong> [À compléter]</li>
                 <li><strong>Design :</strong> [À compléter]</li>
-                <li><strong>Crédits photos :</strong> [À compléter — ex: Unsplash, photographe, etc.]</li>
+                <li><strong>Crédits photos :</strong> [À compléter - ex: Unsplash, photographe, etc.]</li>
                 <li><strong>Icônes :</strong> Lucide Icons (licence ISC)</li>
                 <li><strong>Polices :</strong> Inter et Plus Jakarta Sans (Google Fonts, licence Open Font)</li>
               </ul>

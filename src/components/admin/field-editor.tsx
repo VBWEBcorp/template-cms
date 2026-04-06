@@ -194,7 +194,7 @@ export function ImageField({ label, value, onChange }: ImageFieldProps) {
                   Cliquez ou glissez une image ici
                 </span>
                 <span className="text-xs text-muted-foreground/60">
-                  JPG, PNG, WebP, GIF — max 5 Mo
+                  JPG, PNG, WebP, GIF - max 5 Mo
                 </span>
               </>
             )}

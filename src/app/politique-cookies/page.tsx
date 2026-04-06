@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { siteConfig } from '@/lib/seo'
 
 const description =
-  'Politique de cookies — informations sur les cookies utilisés sur le site, leur finalité et comment gérer vos préférences.'
+  'Politique de cookies : informations sur les cookies utilisés sur le site, leur finalité et comment gérer vos préférences.'
 
 export const metadata: Metadata = {
   title: 'Politique de cookies',

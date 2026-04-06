@@ -52,7 +52,7 @@ function ValuesTrack({
       <v.icon className={`size-4 ${iconClass}`} aria-hidden />
       {v.label}
       <span className={separatorClass} aria-hidden>
-        —
+        ·
       </span>
     </span>
   ))

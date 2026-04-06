@@ -175,7 +175,7 @@ export default function AdminLoginPage() {
           <div className="flex items-center justify-center gap-2 text-white/70">
             <Shield className="size-4" />
             <p className="text-xs">
-              Connexion sécurisée — Données respectant la RGPD, stockées en Europe
+              Connexion sécurisée. Données respectant la RGPD, stockées en Europe
             </p>
           </div>
           <Button

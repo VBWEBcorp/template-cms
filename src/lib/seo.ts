@@ -3,7 +3,7 @@ export const siteConfig = {
   url: 'https://www.example.com',
   locale: 'fr_FR',
   description:
-    'Votre entreprise — description courte et percutante de votre activité. Adaptez cette ligne à votre domaine.',
+    'Votre entreprise - description courte et percutante de votre activité. Adaptez cette ligne à votre domaine.',
   ogImage: 'https://www.example.com/og.png',
   twitterHandle: '@votrecompte',
   themeColor: '#6d28d9',
@@ -29,7 +29,7 @@ export type SeoMeta = {
 
 export function buildTitle(page?: string) {
   if (!page) return siteConfig.name
-  return `${page} — ${siteConfig.name}`
+  return `${page} - ${siteConfig.name}`
 }
 
 export const routes = [

@@ -122,7 +122,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-6 flex items-center justify-center sm:justify-start">
           <p className="text-xs text-zinc-500">
-            &copy; {new Date().getFullYear()} {siteConfig.name} — Tous droits réservés
+            &copy; {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés
           </p>
         </div>
       </div>

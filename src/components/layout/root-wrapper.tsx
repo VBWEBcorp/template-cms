@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { CookieConsent } from '@/components/layout/cookie-consent'
 import { FloatingCallButton } from '@/components/floating-call-button'
 import { Footer } from '@/components/layout/footer'
+import { MarketingPopup } from '@/components/marketing-popup'
 import { Navbar } from '@/components/layout/navbar'
 
 export function RootWrapper({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ export function RootWrapper({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <FloatingCallButton />
+      <MarketingPopup />
       <CookieConsent />
     </>
   )

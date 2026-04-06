@@ -160,9 +160,9 @@ export default function AdminBlogPage() {
   if (loading) return <div className="p-6">Chargement...</div>
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center gap-3 pt-8 md:pt-0">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/dashboard"
@@ -173,7 +173,7 @@ export default function AdminBlogPage() {
           <h1 className="text-lg font-bold text-foreground">Blog</h1>
 
           {/* Toggle enable */}
-          <label className="flex items-center gap-2 ml-4 cursor-pointer">
+          <label className="flex items-center gap-2 ml-2 cursor-pointer">
             <div
               className={cn(
                 'relative w-9 h-5 rounded-full transition-colors',

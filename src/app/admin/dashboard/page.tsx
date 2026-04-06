@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
   if (loading || !user) return null
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
         <h2 className="text-sm font-bold text-muted-foreground/60 uppercase tracking-widest mb-4">
           Éditer les pages
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-8 md:pt-0">
           {modules.map((mod) => {
             const Icon = mod.icon
             return (

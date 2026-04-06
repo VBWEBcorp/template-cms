@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { AdminSidebar } from '@/components/admin/sidebar'
+import { AdminSidebar, MobileMenuButton } from '@/components/admin/sidebar'
 import { SidebarProvider, useSidebar } from '@/components/admin/sidebar-context'
 import { cn } from '@/lib/utils'
 
 const publicPaths = ['/admin/login', '/admin/register']
 
 function AdminMain({ children }: { children: React.ReactNode }) {
-  const { collapsed } = useSidebar()
+  const { collapsed, isMobile } = useSidebar()
   return (
     <main className={cn(
       'flex-1 min-h-screen bg-muted/30 transition-all duration-200',
-      collapsed ? 'ml-[60px]' : 'ml-[220px]'
+      isMobile ? 'ml-0' : collapsed ? 'ml-[60px]' : 'ml-[220px]'
     )}>
       {children}
     </main>
@@ -60,6 +60,7 @@ export default function AdminLayout({
     <SidebarProvider>
       <div className="flex min-h-screen">
         <AdminSidebar />
+        <MobileMenuButton />
         <AdminMain>{children}</AdminMain>
       </div>
     </SidebarProvider>

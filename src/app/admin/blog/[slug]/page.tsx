@@ -155,10 +155,10 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
   if (loading) return <div className="p-6">Chargement...</div>
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 px-6 lg:px-8 pt-6 lg:pt-8 pb-4 bg-muted/30 backdrop-blur-sm border-b border-border/30 mb-6">
-        <div className="flex items-center justify-between max-w-4xl">
+      <div className="sticky top-0 z-10 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8 px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-4 bg-muted/30 backdrop-blur-sm border-b border-border/30 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-4xl">
           <div className="flex items-center gap-3">
             <Link
               href="/admin/blog"
@@ -166,11 +166,11 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
             >
               <ArrowLeft className="size-4" />
             </Link>
-            <h1 className="text-lg font-bold text-foreground">
+            <h1 className="text-base sm:text-lg font-bold text-foreground">
               {isNew ? 'Nouvel article' : 'Modifier l\'article'}
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pl-11 sm:pl-0">
             {!isNew && (
               <Button size="sm" variant="ghost" onClick={handleDelete} className="text-destructive hover:text-destructive">
                 <Trash2 className="size-3.5" />
@@ -182,7 +182,7 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
               onClick={() => updateField('published', !post.published)}
             >
               {post.published ? (
-                <><EyeOff className="size-3.5" /> Repasser en brouillon</>
+                <><EyeOff className="size-3.5" /> <span className="hidden sm:inline">Repasser en</span> Brouillon</>
               ) : (
                 <><Eye className="size-3.5" /> Publier</>
               )}

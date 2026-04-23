@@ -14,6 +14,13 @@ const defaultPopup = {
   textColor: '#111827',
   buttonColor: '#2563eb',
   delay: 5,
+  banner: {
+    enabled: false,
+    text: '',
+    link: '',
+    bgColor: '#111827',
+    textColor: '#ffffff',
+  },
 }
 
 // GET marketing popup settings (public)
@@ -48,7 +55,7 @@ export async function PUT(request: NextRequest) {
     if (!popup) {
       popup = await MarketingPopup.create(body)
     } else {
-      const fields = ['enabled', 'title', 'description', 'buttonText', 'buttonLink', 'imageUrl', 'bgColor', 'textColor', 'buttonColor', 'delay']
+      const fields = ['enabled', 'title', 'description', 'buttonText', 'buttonLink', 'imageUrl', 'bgColor', 'textColor', 'buttonColor', 'delay', 'banner']
       for (const field of fields) {
         if (body[field] !== undefined) (popup as any)[field] = body[field]
       }

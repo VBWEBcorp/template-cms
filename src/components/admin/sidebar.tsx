@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
   Images,
@@ -18,6 +19,8 @@ import {
   Menu,
   X,
   Megaphone,
+  FilePen,
+  ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from '@/components/admin/sidebar-context'
@@ -26,12 +29,15 @@ const navItems = [
   { href: '/admin/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
 ]
 
-const pageItems = [
+const pageEditItems = [
   { href: '/admin/pages/accueil', label: 'Accueil', icon: Home },
   { href: '/admin/pages/a-propos', label: 'À propos', icon: Users },
   { href: '/admin/pages/services', label: 'Services', icon: Briefcase },
   { href: '/admin/pages/contact', label: 'Contact', icon: Phone },
   { href: '/admin/pages/temoignages', label: 'Témoignages', icon: MessageSquare },
+]
+
+const moduleItems = [
   { href: '/admin/gallery', label: 'Galerie', icon: Images },
   { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/marketing', label: 'Marketing', icon: Megaphone },
@@ -77,6 +83,11 @@ export function AdminSidebar() {
   const { collapsed, mobileOpen, isMobile, toggle, setMobileOpen } = useSidebar()
   const pathname = usePathname()
   const router = useRouter()
+  const pagesSectionActive = pageEditItems.some((i) => pathname === i.href)
+  const [pagesOpen, setPagesOpen] = useState(pagesSectionActive)
+  useEffect(() => {
+    if (pagesSectionActive) setPagesOpen(true)
+  }, [pagesSectionActive])
 
   const handleLogout = () => {
     localStorage.removeItem('authToken')
@@ -138,11 +149,61 @@ export function AdminSidebar() {
         <div className="space-y-1">
           {(!collapsed || isMobile) && (
             <p className="px-3 pb-1 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              Pages
+              Contenus
             </p>
           )}
           {(collapsed && !isMobile) && <div className="border-t border-white/10 mb-1" />}
-          {pageItems.map((item) => (
+
+          {/* Collapsible "Modification des pages" group */}
+          {(!collapsed || isMobile) ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setPagesOpen((v) => !v)}
+                className={cn(
+                  'w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all',
+                  pagesSectionActive
+                    ? 'text-white'
+                    : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+                )}
+                aria-expanded={pagesOpen}
+              >
+                <FilePen className="size-[18px] shrink-0" />
+                <span className="flex-1 text-left">Modification des pages</span>
+                <ChevronDown
+                  className={cn(
+                    'size-4 shrink-0 transition-transform',
+                    pagesOpen ? 'rotate-0' : '-rotate-90'
+                  )}
+                />
+              </button>
+              {pagesOpen && (
+                <div className="ml-3 pl-3 border-l border-white/10 space-y-1">
+                  {pageEditItems.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      {...item}
+                      pathname={pathname}
+                      collapsed={false}
+                      onClick={closeMobile}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            pageEditItems.map((item) => (
+              <NavLink
+                key={item.href}
+                {...item}
+                pathname={pathname}
+                collapsed
+                onClick={closeMobile}
+              />
+            ))
+          )}
+
+          {moduleItems.map((item) => (
             <NavLink key={item.href} {...item} pathname={pathname} collapsed={isMobile ? false : collapsed} onClick={closeMobile} />
           ))}
         </div>

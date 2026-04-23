@@ -42,8 +42,8 @@ function TestimonialCard({
   testimonial: { name: string; company: string; text: string; stars: number }
 }) {
   return (
-    <figure className="flex h-[180px] w-[300px] shrink-0 flex-col rounded-xl border border-border/60 bg-card/80 px-5 py-4 shadow-[var(--shadow-xs)] ring-1 ring-foreground/[0.03] backdrop-blur-sm">
-      <div className="flex items-center justify-between">
+    <figure className="flex h-[200px] w-[300px] shrink-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card/80 px-5 py-4 shadow-[var(--shadow-xs)] ring-1 ring-foreground/[0.03] backdrop-blur-sm">
+      <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
@@ -55,16 +55,16 @@ function TestimonialCard({
         </div>
         <GoogleLogo />
       </div>
-      <blockquote className="mt-3 flex-1">
-        <p className="text-[13px] leading-relaxed text-foreground/85">
-          "{testimonial.text}"
+      <blockquote className="mt-3 flex-1 min-h-0 overflow-hidden">
+        <p className="line-clamp-4 text-[13px] leading-relaxed text-foreground/85">
+          &ldquo;{testimonial.text}&rdquo;
         </p>
       </blockquote>
-      <figcaption className="mt-3 flex items-center gap-2.5 border-t border-border/40 pt-3">
-        <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+      <figcaption className="mt-3 flex items-center gap-2.5 border-t border-border/40 pt-3 shrink-0">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
           {testimonial.name.charAt(0)}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold text-foreground">{testimonial.name}</p>
           <p className="truncate text-[11px] text-muted-foreground">{testimonial.company}</p>
         </div>
@@ -83,7 +83,7 @@ function MarqueeRow({
   const animationClass = direction === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'
 
   return (
-    <div className="group relative flex overflow-hidden">
+    <div className="group relative flex gap-6 overflow-hidden">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background to-transparent sm:w-24" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background to-transparent sm:w-24" />
       <div className={`flex shrink-0 gap-6 py-2 ${animationClass} group-hover:[animation-play-state:paused]`}>
@@ -111,11 +111,30 @@ export function TestimonialsSection() {
   return (
     <section className="overflow-hidden border-y border-border/60 bg-muted/10">
       <div className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 lg:px-8 lg:pt-20">
-        <SectionTitle
-          eyebrow={data.eyebrow ?? defaults.eyebrow}
-          title={data.title ?? defaults.title}
-          description={data.description ?? defaults.description}
-        />
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-3 rounded-full border border-border/70 bg-card px-4 py-2 shadow-sm">
+            <GoogleLogo />
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className="size-4 fill-amber-400 text-amber-400"
+                  aria-hidden
+                />
+              ))}
+            </div>
+            <span className="text-xs font-semibold text-foreground">
+              5,0 sur Google
+            </span>
+          </div>
+        </div>
+        <div className="mt-6">
+          <SectionTitle
+            eyebrow={data.eyebrow ?? defaults.eyebrow}
+            title={data.title ?? defaults.title}
+            description={data.description ?? defaults.description}
+          />
+        </div>
       </div>
 
       <div className="mt-10 space-y-6 pb-14 lg:pb-20">

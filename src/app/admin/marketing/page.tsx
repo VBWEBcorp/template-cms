@@ -3,13 +3,22 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, Eye, X, Megaphone } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Eye, X, Megaphone, AlignCenter } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageField } from '@/components/admin/field-editor'
+import { cn } from '@/lib/utils'
+
+interface BannerSettings {
+  enabled: boolean
+  text: string
+  link: string
+  bgColor: string
+  textColor: string
+}
 
 interface PopupSettings {
   enabled: boolean
@@ -22,6 +31,7 @@ interface PopupSettings {
   textColor: string
   buttonColor: string
   delay: number
+  banner: BannerSettings
 }
 
 const defaultSettings: PopupSettings = {
@@ -35,7 +45,16 @@ const defaultSettings: PopupSettings = {
   textColor: '#111827',
   buttonColor: '#2563eb',
   delay: 5,
+  banner: {
+    enabled: false,
+    text: '',
+    link: '',
+    bgColor: '#111827',
+    textColor: '#ffffff',
+  },
 }
+
+type Tab = 'popup' | 'banner'
 
 export default function AdminMarketingPage() {
   const router = useRouter()
@@ -43,6 +62,7 @@ export default function AdminMarketingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [tab, setTab] = useState<Tab>('popup')
 
   useEffect(() => {
     if (!localStorage.getItem('authToken')) {
@@ -55,7 +75,11 @@ export default function AdminMarketingPage() {
       try {
         const res = await fetch('/api/marketing')
         const data = await res.json()
-        setSettings({ ...defaultSettings, ...data })
+        setSettings({
+          ...defaultSettings,
+          ...data,
+          banner: { ...defaultSettings.banner, ...(data?.banner ?? {}) },
+        })
       } catch (error) {
         console.error('Failed to load marketing settings:', error)
       } finally {
@@ -64,6 +88,10 @@ export default function AdminMarketingPage() {
     }
     fetchData()
   }, [])
+
+  const updateBanner = (patch: Partial<BannerSettings>) => {
+    setSettings((s) => ({ ...s, banner: { ...s.banner, ...patch } }))
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -104,21 +132,55 @@ export default function AdminMarketingPage() {
           </Link>
           <div>
             <h1 className="text-lg font-bold text-foreground">Marketing</h1>
-            <p className="text-xs text-muted-foreground">Popup promotionnelle affichée aux visiteurs</p>
+            <p className="text-xs text-muted-foreground">
+              {tab === 'popup'
+                ? 'Popup promotionnelle affichée aux visiteurs'
+                : 'Bannière affichée au-dessus du header'}
+            </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => setShowPreview(true)}
-        >
-          <Eye className="size-4" />
-          Aperçu
-        </Button>
+        {tab === 'popup' && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setShowPreview(true)}
+          >
+            <Eye className="size-4" />
+            Aperçu
+          </Button>
+        )}
       </div>
 
-      {/* Settings */}
+      {/* Tabs */}
+      <div className="inline-flex items-center gap-1 rounded-lg bg-muted/60 p-1">
+        <button
+          onClick={() => setTab('popup')}
+          className={cn(
+            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+            tab === 'popup'
+              ? 'bg-white text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Megaphone className="size-4" />
+          Popup Marketing
+        </button>
+        <button
+          onClick={() => setTab('banner')}
+          className={cn(
+            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+            tab === 'banner'
+              ? 'bg-white text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <AlignCenter className="size-4" />
+          Bannière
+        </button>
+      </div>
+
+      {tab === 'popup' && (
       <div className="rounded-xl bg-card border border-border/40 overflow-hidden max-w-2xl">
         {/* Enable toggle */}
         <div className="px-5 py-3 border-b border-border/40 bg-muted/30 flex items-center justify-between">
@@ -283,8 +345,124 @@ export default function AdminMarketingPage() {
           </Button>
         </div>
       </div>
+      )}
 
-      {/* Preview modal */}
+      {tab === 'banner' && (
+      <div className="rounded-xl bg-card border border-border/40 overflow-hidden max-w-2xl">
+        <div className="px-5 py-3 border-b border-border/40 bg-muted/30 flex items-center justify-between">
+          <h3 className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
+            Bannière au-dessus du header
+          </h3>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <div
+              className={`relative w-9 h-5 rounded-full transition-colors ${settings.banner.enabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+              onClick={() => updateBanner({ enabled: !settings.banner.enabled })}
+            >
+              <div className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform ${settings.banner.enabled ? 'translate-x-4' : ''}`} />
+            </div>
+            <span className="text-xs text-muted-foreground">{settings.banner.enabled ? 'Activée' : 'Désactivée'}</span>
+          </label>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Live preview */}
+          <div className="rounded-lg border border-border/40 overflow-hidden">
+            <div className="px-3 py-1.5 bg-muted/40 text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest border-b border-border/40">
+              Aperçu
+            </div>
+            <div
+              className="px-4 py-2 text-center text-sm font-medium"
+              style={{ backgroundColor: settings.banner.bgColor, color: settings.banner.textColor }}
+            >
+              {settings.banner.text || 'Votre texte de bannière…'}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Contenu</p>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Texte
+              </Label>
+              <Input
+                value={settings.banner.text}
+                onChange={(e) => updateBanner({ text: e.target.value })}
+                placeholder="Livraison gratuite jusqu'au 30 avril !"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Lien (optionnel)
+              </Label>
+              <Input
+                value={settings.banner.link}
+                onChange={(e) => updateBanner({ link: e.target.value })}
+                placeholder="/contact ou https://..."
+              />
+              <p className="text-[11px] text-muted-foreground/60">
+                Laissez vide pour que la bannière ne soit pas cliquable.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-2 border-t border-border/40">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Design</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Fond
+                </Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.banner.bgColor}
+                    onChange={(e) => updateBanner({ bgColor: e.target.value })}
+                    className="size-9 rounded-lg border border-input cursor-pointer bg-transparent"
+                  />
+                  <Input
+                    value={settings.banner.bgColor}
+                    onChange={(e) => updateBanner({ bgColor: e.target.value })}
+                    className="font-mono text-xs"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Texte
+                </Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.banner.textColor}
+                    onChange={(e) => updateBanner({ textColor: e.target.value })}
+                    className="size-9 rounded-lg border border-input cursor-pointer bg-transparent"
+                  />
+                  <Input
+                    value={settings.banner.textColor}
+                    onChange={(e) => updateBanner({ textColor: e.target.value })}
+                    className="font-mono text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full gap-2"
+          >
+            <Check className="size-4" />
+            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </Button>
+        </div>
+      </div>
+      )}
+
+      {/* Preview modal (popup only) */}
       {showPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md" onClick={() => setShowPreview(false)}>
           <motion.div
@@ -296,7 +474,6 @@ export default function AdminMarketingPage() {
             className="relative mx-4 w-full max-w-[420px] overflow-hidden rounded-3xl shadow-[0_25px_60px_-12px_rgba(0,0,0,0.4)]"
             style={{ backgroundColor: settings.bgColor, color: settings.textColor }}
           >
-            {/* Decorative gradient orbs */}
             <div
               className="pointer-events-none absolute -top-20 -right-20 size-40 rounded-full opacity-20 blur-3xl"
               style={{ backgroundColor: settings.buttonColor }}
@@ -306,7 +483,6 @@ export default function AdminMarketingPage() {
               style={{ backgroundColor: settings.buttonColor }}
             />
 
-            {/* Close button */}
             <motion.button
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -318,7 +494,6 @@ export default function AdminMarketingPage() {
               <X className="size-4" strokeWidth={2.5} />
             </motion.button>
 
-            {/* Image */}
             {settings.imageUrl && (
               <div className="relative w-full h-52 overflow-hidden">
                 <img
@@ -335,7 +510,6 @@ export default function AdminMarketingPage() {
               </div>
             )}
 
-            {/* Content */}
             <div className={`relative px-7 ${settings.imageUrl ? 'pt-1 pb-7' : 'py-8'}`}>
               {!settings.imageUrl && (
                 <motion.div

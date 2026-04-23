@@ -11,6 +11,13 @@ export interface IMarketingPopup extends Document {
   textColor: string
   buttonColor: string
   delay: number // in seconds
+  banner?: {
+    enabled: boolean
+    text: string
+    link?: string
+    bgColor: string
+    textColor: string
+  }
   updatedAt: Date
 }
 
@@ -52,6 +59,13 @@ const MarketingPopupSchema = new Schema<IMarketingPopup>(
     delay: {
       type: Number,
       default: 5,
+    },
+    banner: {
+      enabled: { type: Boolean, default: false },
+      text: { type: String, default: '' },
+      link: { type: String, default: '' },
+      bgColor: { type: String, default: '#111827' },
+      textColor: { type: String, default: '#ffffff' },
     },
   },
   {

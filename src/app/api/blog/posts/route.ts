@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { BlogPost } from '@/models/Blog'
 import { verifyAuth } from '@/lib/auth'
+import { visiblePostFilter } from '@/lib/blog-filters'
 
-// GET all posts (public: published only, admin: all)
+// GET all posts (admin: all visible + own drafts; public: visible only)
+// "Visible" = published AND publishedAt <= now (articles with future publishedAt
+// are hidden everywhere, including from the admin UI, so they cannot be seen
+// or edited via this CMS — only via direct DB access.
 export async function GET(request: NextRequest) {
   try {
     await connectDB()
 
-    const { authenticated } = await verifyAuth(request)
-    const filter = authenticated ? {} : { published: true }
+    const { authenticated, user } = await verifyAuth(request)
+    const isAdmin = authenticated && user?.role === 'admin'
+    const filter = isAdmin
+      ? { $or: [visiblePostFilter(), { published: false }] }
+      : visiblePostFilter()
 
     const posts = await BlogPost.find(filter).sort({ publishedAt: -1, createdAt: -1 })
     return NextResponse.json(posts)

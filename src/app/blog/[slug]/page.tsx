@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { connectDB } from '@/lib/db'
 import { BlogPost } from '@/models/Blog'
+import { visiblePostFilter } from '@/lib/blog-filters'
 import { siteConfig } from '@/lib/seo'
 import BlogPostContent from './blog-post-content'
 
@@ -15,7 +16,7 @@ export const revalidate = 3600
 export async function generateStaticParams() {
   try {
     await connectDB()
-    const posts = await BlogPost.find({ published: true }).select('slug').lean()
+    const posts = await BlogPost.find(visiblePostFilter()).select('slug').lean()
     return posts.map((post) => ({ slug: (post as any).slug }))
   } catch {
     return []
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
   try {
     await connectDB()
-    const post = await BlogPost.findOne({ slug, published: true }).lean() as any
+    const post = await BlogPost.findOne({ slug, ...visiblePostFilter() }).lean() as any
 
     if (!post) return {}
 
@@ -74,7 +75,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   // Server-side check: if post doesn't exist or isn't published, 404
   try {
     await connectDB()
-    const post = await BlogPost.findOne({ slug, published: true }).lean() as any
+    const post = await BlogPost.findOne({ slug, ...visiblePostFilter() }).lean() as any
 
     if (!post) notFound()
 

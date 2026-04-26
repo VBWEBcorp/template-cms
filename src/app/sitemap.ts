@@ -3,6 +3,7 @@ import type { MetadataRoute } from 'next'
 import { siteConfig } from '@/lib/seo'
 import { connectDB } from '@/lib/db'
 import { BlogPost, BlogSettings } from '@/models/Blog'
+import { visiblePostFilter } from '@/lib/blog-filters'
 import { GallerySettings } from '@/models/Gallery'
 
 const baseUrl = siteConfig.url
@@ -60,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
 
       // Individual blog posts
-      const posts = await BlogPost.find({ published: true }).select('slug updatedAt publishedAt')
+      const posts = await BlogPost.find(visiblePostFilter()).select('slug updatedAt publishedAt')
       for (const post of posts) {
         pages.push({
           url: `${baseUrl}/blog/${post.slug}`,

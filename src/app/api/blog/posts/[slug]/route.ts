@@ -2,16 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { BlogPost } from '@/models/Blog'
 import { verifyAuth } from '@/lib/auth'
+import { visiblePostFilter } from '@/lib/blog-filters'
 
 type Params = Promise<{ slug: string }>
 
 // GET single post by slug
+// Admin sees own drafts + visible posts. Posts with future publishedAt are
+// hidden everywhere — even admin gets a 404 here, so they cannot be edited
+// or deleted via the CMS (only via direct DB access).
 export async function GET(request: NextRequest, { params }: { params: Params }) {
   try {
     const { slug } = await params
     await connectDB()
 
-    const post = await BlogPost.findOne({ slug })
+    const { authenticated, user } = await verifyAuth(request)
+    const isAdmin = authenticated && user?.role === 'admin'
+    const filter = isAdmin
+      ? { slug, $or: [visiblePostFilter(), { published: false }] }
+      : { slug, ...visiblePostFilter() }
+
+    const post = await BlogPost.findOne(filter)
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
@@ -40,7 +50,11 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
       body.publishedAt = new Date()
     }
 
-    const post = await BlogPost.findOneAndUpdate({ slug }, body, {
+    const editableFilter = {
+      slug,
+      $or: [visiblePostFilter(), { published: false }],
+    }
+    const post = await BlogPost.findOneAndUpdate(editableFilter, body, {
       new: true,
       runValidators: true,
     })
@@ -67,7 +81,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Params 
     const { slug } = await params
     await connectDB()
 
-    const post = await BlogPost.findOneAndDelete({ slug })
+    const post = await BlogPost.findOneAndDelete({
+      slug,
+      $or: [visiblePostFilter(), { published: false }],
+    })
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }

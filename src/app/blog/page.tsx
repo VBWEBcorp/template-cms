@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { connectDB } from '@/lib/db'
 import { BlogSettings, BlogPost } from '@/models/Blog'
+import { visiblePostFilter } from '@/lib/blog-filters'
 import { siteConfig } from '@/lib/seo'
 import BlogPageContent from './blog-page-content'
 
@@ -48,7 +49,7 @@ export default async function BlogPage() {
   try {
     await connectDB()
     const settings = await BlogSettings.findOne().lean() as any
-    const posts = await BlogPost.find({ published: true })
+    const posts = await BlogPost.find(visiblePostFilter())
       .sort({ publishedAt: -1 })
       .select('title slug excerpt coverImage publishedAt author')
       .limit(20)

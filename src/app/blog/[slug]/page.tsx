@@ -8,7 +8,7 @@ import BlogPostContent from './blog-post-content'
 
 type Params = Promise<{ slug: string }>
 
-// Revalidate every 60 minutes — new articles will be picked up automatically
+// Revalidate every 60 minutes, new articles will be picked up automatically
 export const revalidate = 3600
 
 // Pre-render all published blog posts at build time
@@ -22,7 +22,7 @@ export async function generateStaticParams() {
   }
 }
 
-// Generate SEO metadata server-side — visible to Google on first crawl
+// Generate SEO metadata server-side, visible to Google on first crawl
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params
 

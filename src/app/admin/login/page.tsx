@@ -2,20 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Lock, Mail, Shield } from 'lucide-react'
+import { ArrowRight, Lock, Mail, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+
+const ease = [0.22, 1, 0.36, 1] as const
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -54,141 +50,163 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
-      style={{
-        backgroundImage: 'url(https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=75"
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-primary/30" />
+        <div className="absolute inset-0 backdrop-blur-[2px]" />
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md relative z-10"
-      >
-        <Card className="border-white/10 bg-card/95 backdrop-blur-md shadow-2xl">
-          <CardHeader className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
-                <Lock className="size-4 text-primary" />
-              </div>
-              <CardTitle>Connexion Admin</CardTitle>
-            </div>
-            <CardDescription>
-              Accédez à votre espace d'administration sécurisé
-            </CardDescription>
-          </CardHeader>
+      {/* Decorative ambient glow */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-32 -left-32 size-[480px] rounded-full bg-primary/20 blur-[140px]" />
+        <div className="absolute -bottom-40 -right-20 size-[420px] rounded-full bg-sky-400/15 blur-[140px]" />
+      </div>
 
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="admin@example.com"
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-                <div className="relative">
-                  <Lock className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm"
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-9 mt-2"
-              >
-                {loading ? 'Connexion en cours...' : 'Se connecter'}
-              </Button>
-            </form>
-
-            {/* TODO: Retirer avant mise en production */}
-            <div className="mt-4">
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  localStorage.setItem('authToken', 'demo-token')
-                  localStorage.setItem('authUser', JSON.stringify({ email: 'demo@template.com', name: 'Demo', role: 'admin' }))
-                  router.push('/admin/dashboard')
-                }}
-              >
-                Accès démo
-              </Button>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-border/50">
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Vous n'avez pas de compte?
-              </p>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full"
-              >
-                <Link href="/admin/register">
-                  Créer un compte
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Footer sécurité + RGPD */}
-        <div className="mt-6 text-center space-y-3">
-          <div className="flex items-center justify-center gap-2 text-white/70">
-            <Shield className="size-4" />
-            <p className="text-xs">
-              Connexion sécurisée. Données respectant la RGPD, stockées en Europe
-            </p>
-          </div>
-          <Button
-            asChild
-            variant="link"
-            className="text-white/50 hover:text-white/80 text-xs h-auto p-0"
+      <div className="flex min-h-screen flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-6 sm:px-10 sm:py-8">
+          <Link
+            href="/"
+            className="font-display text-sm font-semibold tracking-wide text-white/90 transition-colors hover:text-white"
           >
-            <Link href="/politique-de-confidentialite">
-              Politique de confidentialité
-            </Link>
-          </Button>
-        </div>
-      </motion.div>
+            ← Retour au site
+          </Link>
+          <div className="hidden items-center gap-2 text-xs text-white/70 sm:flex">
+            <Shield className="size-3.5" />
+            <span>Connexion sécurisée</span>
+          </div>
+        </header>
+
+        {/* Centered content */}
+        <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease }}
+            className="w-full max-w-md"
+          >
+            {/* Title outside card */}
+            <div className="mb-8 text-center sm:mb-10">
+              <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md">
+                <Lock className="size-5 text-white" />
+              </div>
+              <h1 className="font-display text-3xl font-bold tracking-[-0.02em] text-white sm:text-4xl">
+                Espace admin
+              </h1>
+              <p className="mt-2 text-sm text-white/70">
+                Connectez-vous pour gérer le contenu du site
+              </p>
+            </div>
+
+            {/* Glassmorphism card */}
+            <div className="rounded-3xl border border-white/15 bg-white/[0.07] p-6 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-8">
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-white/70">
+                    Email
+                  </Label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="h-11 rounded-xl border-white/15 bg-white/10 pl-10 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-white/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-white/70">
+                    Mot de passe
+                  </Label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" />
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="h-11 rounded-xl border-white/15 bg-white/10 pl-10 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-white/20"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-100"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="group h-11 w-full rounded-xl bg-white text-black transition-all hover:bg-white/90 hover:shadow-lg"
+                >
+                  {loading ? (
+                    'Connexion en cours...'
+                  ) : (
+                    <>
+                      Se connecter
+                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
+
+                <div className="relative flex items-center gap-3 py-1">
+                  <span className="h-px flex-1 bg-white/15" />
+                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">ou</span>
+                  <span className="h-px flex-1 bg-white/15" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem('authToken', 'demo-token')
+                    localStorage.setItem(
+                      'authUser',
+                      JSON.stringify({ email: 'demo@template.com', name: 'Demo', role: 'admin' })
+                    )
+                    router.push('/admin/dashboard')
+                  }}
+                  className="group flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-white transition-all hover:border-white/25 hover:bg-white/10"
+                >
+                  Accès démo
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        </main>
+
+        {/* Footer */}
+        <footer className="px-6 py-6 text-center sm:px-10 sm:py-8">
+          <Link
+            href="/politique-de-confidentialite"
+            className="text-[11px] text-white/50 transition-colors hover:text-white/80"
+          >
+            Politique de confidentialité
+          </Link>
+        </footer>
+      </div>
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -67,11 +68,11 @@ export function GalleryCarousel() {
               {gallery.title}
             </h2>
           </div>
-          <div className="hidden gap-2 sm:flex">
-            <Button type="button" variant="outline" size="icon" className="rounded-full" aria-label="Image précédente" onClick={() => slide(-1)}>
+          <div className="flex shrink-0 gap-2">
+            <Button type="button" variant="outline" size="icon" className="size-10 rounded-full sm:size-11" aria-label="Image précédente" onClick={() => slide(-1)}>
               <ChevronLeft className="size-5" />
             </Button>
-            <Button type="button" variant="outline" size="icon" className="rounded-full" aria-label="Image suivante" onClick={() => slide(1)}>
+            <Button type="button" variant="outline" size="icon" className="size-10 rounded-full sm:size-11" aria-label="Image suivante" onClick={() => slide(1)}>
               <ChevronRight className="size-5" />
             </Button>
           </div>
@@ -89,8 +90,15 @@ export function GalleryCarousel() {
             {images.map((src: string, i: number) => (
               <motion.div key={i} className="shrink-0" style={{ width: CARD_WIDTH, marginRight: i < images.length - 1 ? GAP : 0 }}>
                 <div className="group overflow-hidden rounded-2xl border border-border/80 bg-card/70 shadow-[var(--shadow-sm)] ring-1 ring-foreground/5 transition-shadow duration-300 hover:shadow-[var(--shadow-md)]">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img src={src} alt="" loading="lazy" width={720} height={540} className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="340px"
+                      loading="lazy"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    />
                   </div>
                 </div>
               </motion.div>

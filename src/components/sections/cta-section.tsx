@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -17,30 +18,24 @@ const defaults = {
 }
 
 const col1Images = [
-  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1531973576160-7125cd663d86?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=500&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1531973576160-7125cd663d86?w=400&h=500&fit=crop&q=75',
 ]
 
 const col2Images = [
-  'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=500&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=500&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=500&fit=crop&q=75',
+  'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=400&h=500&fit=crop&q=75',
 ]
 
 function ScrollColumn({ images, direction, speed }: { images: string[]; direction: 'up' | 'down'; speed: number }) {
-  // Triple the images so there's never a gap
-  const tripled = [...images, ...images, ...images]
-  // Each image block = height + gap. We need to scroll exactly one set of images.length
-  // Using percentage-based: 1 set = 33.333% of tripled container
-  const from = direction === 'up' ? '0%' : '-33.333%'
-  const to = direction === 'up' ? '-33.333%' : '0%'
+  // Duplicate once for seamless loop (2 copies, translate -50%)
+  const doubled = [...images, ...images]
+  const from = direction === 'up' ? '0%' : '-50%'
+  const to = direction === 'up' ? '-50%' : '0%'
 
   return (
     <div className="w-[130px] lg:w-[150px] shrink-0">
@@ -56,16 +51,18 @@ function ScrollColumn({ images, direction, speed }: { images: string[]; directio
           },
         }}
       >
-        {tripled.map((src, i) => (
+        {doubled.map((src, i) => (
           <div
             key={`${direction}-${i}`}
-            className="w-full aspect-[3/4] rounded-2xl overflow-hidden shrink-0"
+            className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shrink-0"
           >
-            <img
+            <Image
               src={src}
               alt=""
-              className="w-full h-full object-cover"
+              fill
+              sizes="150px"
               loading="lazy"
+              className="object-cover"
             />
           </div>
         ))}
@@ -115,7 +112,7 @@ export function CtaSection() {
               <div className="pointer-events-none absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white dark:from-zinc-900 to-transparent z-20" />
               {/* Fade bottom */}
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white dark:from-zinc-900 to-transparent z-20" />
-              {/* Fade left — smooth blend into text area */}
+              {/* Fade left, smooth blend into text area */}
               <div className="pointer-events-none absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-white dark:from-zinc-900 to-transparent z-20" />
 
               <div className="absolute inset-0 overflow-hidden">

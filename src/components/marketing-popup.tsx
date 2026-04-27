@@ -99,6 +99,10 @@ export function MarketingPopup() {
                 <img
                   src={popup.imageUrl}
                   alt={popup.title}
+                  width={420}
+                  height={208}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
                 {/* Image bottom gradient fade */}

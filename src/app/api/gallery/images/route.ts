@@ -7,8 +7,14 @@ import { verifyAuth } from '@/lib/auth'
 export async function GET() {
   try {
     await connectDB()
-    const images = await GalleryImage.find({ active: true }).sort({ order: 1 })
-    return NextResponse.json(images)
+    const images = await GalleryImage.find({ active: true })
+      .sort({ order: 1 })
+      .lean()
+    return NextResponse.json(images, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
+      },
+    })
   } catch (error) {
     console.error('Gallery images error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -3,17 +3,24 @@ import { connectDB } from '@/lib/db'
 import { GallerySettings } from '@/models/Gallery'
 import { verifyAuth } from '@/lib/auth'
 
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
+}
+
 // GET gallery settings (public)
 export async function GET() {
   try {
     await connectDB()
-    const settings = await GallerySettings.findOne()
+    const settings = await GallerySettings.findOne().lean()
 
     if (!settings) {
-      return NextResponse.json({ enabled: false, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.' })
+      return NextResponse.json(
+        { enabled: true, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.' },
+        { headers: CACHE_HEADERS }
+      )
     }
 
-    return NextResponse.json(settings)
+    return NextResponse.json(settings, { headers: CACHE_HEADERS })
   } catch (error) {
     console.error('Gallery settings error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

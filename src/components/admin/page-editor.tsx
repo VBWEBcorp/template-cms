@@ -207,7 +207,7 @@ export function PageEditor({ pageId, title, defaultContent, children }: PageEdit
               <div className="flex items-center gap-2 text-xs text-muted-foreground truncate min-w-0">
                 <Eye className="size-3.5 shrink-0" />
                 <span className="font-medium">Aperçu</span>
-                <span className="truncate hidden sm:inline">— {previewPath}</span>
+                <span className="truncate hidden sm:inline">{previewPath}</span>
               </div>
 
               <div className="flex items-center gap-1 rounded-lg bg-muted/60 p-0.5">

@@ -137,7 +137,7 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className={cn(
-        'flex-1 py-5 space-y-5 overflow-y-auto',
+        'flex-1 py-5 space-y-5 overflow-y-auto scrollbar-hide',
         isMobile ? 'px-3' : collapsed ? 'px-2' : 'px-3'
       )}>
         <div className="space-y-1">

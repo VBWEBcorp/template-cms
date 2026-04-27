@@ -5,18 +5,25 @@ import { verifyAuth } from '@/lib/auth'
 
 type Params = Promise<{ pageId: string }>
 
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=300',
+}
+
 // GET page content (public)
 export async function GET(request: NextRequest, { params }: { params: Params }) {
   try {
     const { pageId } = await params
     await connectDB()
 
-    const page = await SiteContent.findOne({ pageId })
+    const page = await SiteContent.findOne({ pageId }).lean()
     if (!page) {
-      return NextResponse.json({ pageId, content: {} })
+      return NextResponse.json(
+        { pageId, content: {} },
+        { headers: CACHE_HEADERS }
+      )
     }
 
-    return NextResponse.json(page)
+    return NextResponse.json(page, { headers: CACHE_HEADERS })
   } catch (error) {
     console.error('Content fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

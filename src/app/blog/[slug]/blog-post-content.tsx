@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Tag, Clock } from 'lucide-react'
 
@@ -88,10 +89,13 @@ export default function BlogPostContent({ slug }: { slug: string }) {
       {/* Cover image */}
       {post.coverImage && (
         <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[480px] overflow-hidden bg-muted">
-          <img
+          <Image
             src={post.coverImage}
             alt={post.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
         </div>
@@ -149,7 +153,7 @@ export default function BlogPostContent({ slug }: { slug: string }) {
             )}
           </header>
 
-          {/* Article body — rendered HTML from TipTap */}
+          {/* Article body, rendered HTML from TipTap */}
           <div
             className="blog-content pb-16"
             dangerouslySetInnerHTML={{ __html: post.content }}

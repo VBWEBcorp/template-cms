@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Calendar, User, Search } from 'lucide-react'
 
@@ -28,29 +29,15 @@ interface BlogSettings {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-export default function BlogPageContent() {
-  const [settings, setSettings] = useState<BlogSettings | null>(null)
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeCategory, setActiveCategory] = useState<string>('all')
+interface Props {
+  initialSettings: BlogSettings
+  initialPosts: BlogPost[]
+}
 
-  useEffect(() => {
-    const fetchBlog = async () => {
-      try {
-        const [settingsRes, postsRes] = await Promise.all([
-          fetch('/api/blog/settings'),
-          fetch('/api/blog/posts'),
-        ])
-        setSettings(await settingsRes.json())
-        setPosts(await postsRes.json())
-      } catch (error) {
-        console.error('Failed to load blog:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchBlog()
-  }, [])
+export default function BlogPageContent({ initialSettings, initialPosts }: Props) {
+  const [settings] = useState<BlogSettings>(initialSettings)
+  const [posts] = useState<BlogPost[]>(initialPosts)
+  const [activeCategory, setActiveCategory] = useState<string>('all')
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('fr-FR', {
@@ -62,14 +49,6 @@ export default function BlogPageContent() {
   const filteredPosts = activeCategory === 'all'
     ? posts
     : posts.filter((p) => p.category === activeCategory)
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Chargement...</div>
-      </div>
-    )
-  }
 
   if (!settings?.enabled) {
     return (
@@ -86,10 +65,13 @@ export default function BlogPageContent() {
         {/* Background image */}
         <div className="absolute inset-0">
           {settings.heroImage ? (
-            <img
+            <Image
               src={settings.heroImage}
               alt=""
-              className="w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-background" />
@@ -163,11 +145,13 @@ export default function BlogPageContent() {
           >
             <Link href={`/blog/${filteredPosts[0].slug}`} className="group block">
               <div className="grid md:grid-cols-2 gap-6 rounded-2xl border border-border/50 bg-card overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
-                <div className="aspect-[16/10] md:aspect-auto overflow-hidden bg-muted">
-                  <img
+                <div className="relative aspect-[16/10] md:aspect-auto overflow-hidden bg-muted">
+                  <Image
                     src={filteredPosts[0].coverImage}
                     alt={filteredPosts[0].title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(min-width:768px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-6 md:p-8 flex flex-col justify-center space-y-4">
@@ -223,11 +207,14 @@ export default function BlogPageContent() {
                 <Link href={`/blog/${post.slug}`} className="group block h-full">
                   <div className="h-full rounded-2xl border border-border/50 bg-card overflow-hidden transition-all hover:shadow-lg hover:border-primary/20">
                     {post.coverImage && (
-                      <div className="aspect-[16/9] overflow-hidden bg-muted">
-                        <img
+                      <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                        <Image
                           src={post.coverImage}
                           alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          fill
+                          sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw"
+                          loading="lazy"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                     )}

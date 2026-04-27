@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Heart, Lightbulb, Users } from 'lucide-react'
+import Image from 'next/image'
 import { useRef } from 'react'
 
 import { CtaSection } from '@/components/sections/cta-section'
@@ -148,9 +149,16 @@ export function AboutContent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.45, ease, delay: i * 0.06 }}
-                className="overflow-hidden rounded-2xl"
+                className="relative aspect-[4/3] overflow-hidden rounded-2xl"
               >
-                <img src={src} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover transition-transform duration-500 hover:scale-105" />
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="(min-width:768px) 25vw, 50vw"
+                  loading="lazy"
+                  className="object-cover transition-transform duration-500 hover:scale-105"
+                />
               </motion.div>
             ))}
           </div>

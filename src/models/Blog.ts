@@ -47,7 +47,7 @@ const BlogPostSchema = new Schema<IBlogPost>(
 
 const BlogSettingsSchema = new Schema<IBlogSettings>(
   {
-    enabled: { type: Boolean, default: false },
+    enabled: { type: Boolean, default: true },
     title: { type: String, default: 'Nos dernières actualités' },
     description: { type: String, default: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.' },
     eyebrow: { type: String, default: 'Blog' },

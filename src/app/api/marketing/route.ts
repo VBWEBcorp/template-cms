@@ -23,17 +23,21 @@ const defaultPopup = {
   },
 }
 
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
+}
+
 // GET marketing popup settings (public)
 export async function GET() {
   try {
     await connectDB()
-    const popup = await MarketingPopup.findOne()
+    const popup = await MarketingPopup.findOne().lean()
 
     if (!popup) {
-      return NextResponse.json(defaultPopup)
+      return NextResponse.json(defaultPopup, { headers: CACHE_HEADERS })
     }
 
-    return NextResponse.json(popup)
+    return NextResponse.json(popup, { headers: CACHE_HEADERS })
   } catch (error) {
     console.error('Marketing popup error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

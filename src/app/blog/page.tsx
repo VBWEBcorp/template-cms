@@ -43,17 +43,35 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+const defaultSettings = {
+  enabled: true,
+  title: 'Nos dernières actualités',
+  description: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.',
+  eyebrow: 'Blog',
+}
+
 export default async function BlogPage() {
-  // Pre-fetch posts for JSON-LD CollectionPage structured data
+  let settings: any = defaultSettings
+  let posts: any[] = []
   let jsonLd = null
+
   try {
     await connectDB()
-    const settings = await BlogSettings.findOne().lean() as any
-    const posts = await BlogPost.find(visiblePostFilter())
-      .sort({ publishedAt: -1 })
-      .select('title slug excerpt coverImage publishedAt author')
-      .limit(20)
-      .lean() as any[]
+    const [settingsDoc, postsDocs] = await Promise.all([
+      BlogSettings.findOne().lean(),
+      BlogPost.find(visiblePostFilter())
+        .sort({ publishedAt: -1, createdAt: -1 })
+        .select('title slug excerpt coverImage category tags author publishedAt')
+        .limit(50)
+        .lean(),
+    ])
+
+    if (settingsDoc) settings = settingsDoc
+    posts = (postsDocs as any[]).map((p) => ({
+      ...p,
+      _id: String(p._id),
+      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : null,
+    }))
 
     jsonLd = {
       '@context': 'https://schema.org',
@@ -68,7 +86,7 @@ export default async function BlogPage() {
       },
       mainEntity: {
         '@type': 'ItemList',
-        itemListElement: posts.map((post, i) => ({
+        itemListElement: posts.slice(0, 20).map((post, i) => ({
           '@type': 'ListItem',
           position: i + 1,
           url: `${siteConfig.url}/blog/${post.slug}`,
@@ -77,7 +95,7 @@ export default async function BlogPage() {
       },
     }
   } catch {
-    // Silently fail
+    // Fallback gracieux : la page rend avec settings par défaut et liste vide
   }
 
   return (
@@ -88,7 +106,7 @@ export default async function BlogPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <BlogPageContent />
+      <BlogPageContent initialSettings={settings as any} initialPosts={posts as any} />
     </>
   )
 }

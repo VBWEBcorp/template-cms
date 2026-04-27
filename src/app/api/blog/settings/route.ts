@@ -3,14 +3,21 @@ import { connectDB } from '@/lib/db'
 import { BlogSettings } from '@/models/Blog'
 import { verifyAuth } from '@/lib/auth'
 
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
+}
+
 export async function GET() {
   try {
     await connectDB()
-    const settings = await BlogSettings.findOne()
+    const settings = await BlogSettings.findOne().lean()
     if (!settings) {
-      return NextResponse.json({ enabled: false, title: 'Nos dernières actualités', eyebrow: 'Blog', description: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.' })
+      return NextResponse.json(
+        { enabled: true, title: 'Nos dernières actualités', eyebrow: 'Blog', description: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.' },
+        { headers: CACHE_HEADERS }
+      )
     }
-    return NextResponse.json(settings)
+    return NextResponse.json(settings, { headers: CACHE_HEADERS })
   } catch (error) {
     console.error('Blog settings error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

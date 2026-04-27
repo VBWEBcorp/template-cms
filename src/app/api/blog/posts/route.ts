@@ -18,8 +18,15 @@ export async function GET(request: NextRequest) {
       ? { $or: [visiblePostFilter(), { published: false }] }
       : visiblePostFilter()
 
-    const posts = await BlogPost.find(filter).sort({ publishedAt: -1, createdAt: -1 })
-    return NextResponse.json(posts)
+    const posts = await BlogPost.find(filter)
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .lean()
+
+    const headers = authenticated
+      ? { 'Cache-Control': 'no-store' }
+      : { 'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600' }
+
+    return NextResponse.json(posts, { headers })
   } catch (error) {
     console.error('Blog posts error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

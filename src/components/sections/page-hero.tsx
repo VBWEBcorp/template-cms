@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ChevronRight, Home } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -16,21 +17,30 @@ type PageHeroProps = {
 
 export function PageHero({ eyebrow, title, description, image, breadcrumb }: PageHeroProps) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-border/60">
+    <section className="relative isolate overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0" aria-hidden>
-        <img
+        <Image
           src={image}
           alt=""
-          className="h-full w-full object-cover"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
       </div>
 
+      {/* Soft fade-out to page background at bottom */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background sm:h-40"
+      />
+
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <nav aria-label="Fil d'Ariane" className="pt-6">
+        <nav aria-label="Fil d'Ariane" className="pt-24 sm:pt-28">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-white/50">
             <li className="flex items-center gap-1.5">
               <Link

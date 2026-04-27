@@ -64,7 +64,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.17 0.02 264);
 
-  /* Violet-indigo primary — direction artistique type Linear / Raycast */
+  /* Violet-indigo primary, direction artistique type Linear / Raycast */
   --primary: oklch(0.48 0.22 285);
   --primary-foreground: oklch(0.99 0.01 285);
 
@@ -199,5 +199,13 @@
       'rlig' 1,
       'calt' 1,
       'ss01' 1;
+  }
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }

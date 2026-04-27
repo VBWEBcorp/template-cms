@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Phone } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -42,16 +43,23 @@ export function HeroSection() {
     <section className="relative isolate overflow-hidden border-b border-border/60">
       <div className="absolute inset-0" aria-hidden>
         <AnimatePresence initial={false}>
-          <motion.img
+          <motion.div
             key={current}
-            src={images[current]}
-            alt=""
             initial={{ opacity: 0, scale: 1.08 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2, ease }}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+            className="absolute inset-0"
+          >
+            <Image
+              src={images[current]}
+              alt=""
+              fill
+              sizes="100vw"
+              priority={current === 0}
+              className="object-cover"
+            />
+          </motion.div>
         </AnimatePresence>
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />

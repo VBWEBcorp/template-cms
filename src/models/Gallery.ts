@@ -53,7 +53,7 @@ const GallerySettingsSchema = new Schema<IGallerySettings>(
   {
     enabled: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     title: {
       type: String,

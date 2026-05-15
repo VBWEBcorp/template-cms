@@ -63,7 +63,7 @@ export function GalleryCarousel() {
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="flex items-end justify-between gap-4">
           <div className="space-y-3">
-            <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-primary uppercase">
+            <p className="font-display text-xs font-semibold tracking-[0.22em] text-primary uppercase">
               {gallery.eyebrow}
             </p>
             <h2 className="font-display text-2xl tracking-tight text-foreground sm:text-3xl">

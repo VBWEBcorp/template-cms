@@ -92,7 +92,7 @@ export function PremiumHero({
             className={hasImage ? '' : 'mx-auto max-w-3xl'}
           >
             {/* Eyebrow en mono — style Linear/Vercel */}
-            <p className="font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-primary">
+            <p className="font-display text-xs font-semibold tracking-[0.22em] uppercase text-primary">
               {eyebrow}
             </p>
 

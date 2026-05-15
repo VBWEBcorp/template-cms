@@ -58,17 +58,17 @@ export function ServicesContent() {
         {/* KPIs centrés */}
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm">
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl font-medium tracking-tight text-foreground">8</span>
+            <span className="font-display text-2xl font-semibold tracking-tight text-foreground">8</span>
             <span className="text-muted-foreground">prestations</span>
           </div>
           <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline" aria-hidden />
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl font-medium tracking-tight text-foreground">200+</span>
+            <span className="font-display text-2xl font-semibold tracking-tight text-foreground">200+</span>
             <span className="text-muted-foreground">projets livrés</span>
           </div>
           <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline" aria-hidden />
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl font-medium tracking-tight text-foreground">100%</span>
+            <span className="font-display text-2xl font-semibold tracking-tight text-foreground">100%</span>
             <span className="text-muted-foreground">sur mesure</span>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function ServicesContent() {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           {/* En-tête de section */}
           <div className="mx-auto max-w-2xl text-center">
-            <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-primary uppercase">
+            <p className="font-display text-xs font-semibold tracking-[0.22em] text-primary uppercase">
               En détail
             </p>
             <h2 className="mt-4 font-display text-balance text-3xl font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-4xl">
@@ -124,7 +124,7 @@ export function ServicesContent() {
                         <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/20">
                           <Icon className="size-5" aria-hidden />
                         </span>
-                        <span className="font-mono text-[11px] font-medium tracking-[0.2em] text-muted-foreground/60">
+                        <span className="font-display text-[11px] font-bold tracking-[0.2em] text-muted-foreground/60">
                           0{i + 1}
                         </span>
                       </div>

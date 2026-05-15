@@ -98,7 +98,7 @@ function AboutHero({ hero }: { hero: typeof defaults.hero }) {
             transition={{ duration: 0.6, ease }}
           >
             {/* Eyebrow en mono */}
-            <p className="font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-primary">
+            <p className="font-display text-xs font-semibold tracking-[0.22em] uppercase text-primary">
               {hero.eyebrow}
             </p>
 
@@ -132,7 +132,7 @@ function AboutHero({ hero }: { hero: typeof defaults.hero }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + i * 0.06, ease }}
                 >
-                  <div className="font-mono text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+                  <div className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     {s.value}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
@@ -302,7 +302,7 @@ function ValuesTimeline({ values }: { values: any[] }) {
                   />
                   <div className="relative">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-[11px] font-medium tracking-[0.2em] text-primary">
+                      <span className="font-display text-[11px] font-bold tracking-[0.2em] text-primary">
                         0{i + 1}
                       </span>
                       <span className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />

@@ -91,7 +91,7 @@ export function CtaSection() {
           <div className="relative flex items-stretch min-h-[420px] sm:min-h-[460px]">
             {/* Left - Text content */}
             <div className="relative z-10 flex-1 flex flex-col justify-center p-10 sm:p-14 space-y-6">
-              <p className="font-mono text-[11px] font-medium tracking-[0.2em] text-primary uppercase">
+              <p className="font-display text-xs font-semibold tracking-[0.22em] text-primary uppercase">
                 {cta.eyebrow}
               </p>
               <h2 className="max-w-xl font-display text-balance text-3xl tracking-tight text-foreground sm:text-4xl">

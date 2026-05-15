@@ -68,7 +68,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease }}
-            className="font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-primary"
+            className="font-display text-xs font-semibold tracking-[0.22em] uppercase text-primary"
           >
             {hero.eyebrow}
           </motion.p>
@@ -173,7 +173,7 @@ export function HeroSection() {
                   <Star key={i} className="size-3.5 fill-current" aria-hidden />
                 ))}
               </div>
-              <span className="font-mono font-medium text-foreground">4.9/5</span>
+              <span className="font-medium text-foreground">4.9/5</span>
               <span className="text-muted-foreground">· 200+ clients satisfaits</span>
             </div>
           </motion.div>

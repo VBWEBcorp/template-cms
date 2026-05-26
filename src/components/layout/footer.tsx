@@ -1,156 +1,101 @@
-import { ArrowUpRight } from 'lucide-react'
+import { Instagram } from 'lucide-react'
 import Link from 'next/link'
 
+import { Logo } from '@/components/layout/logo'
 import { siteConfig } from '@/lib/seo'
 
 const navLinks = [
   { label: 'Accueil', to: '/' },
-  { label: 'À propos', to: '/a-propos' },
-  { label: 'Services', to: '/services' },
-  { label: 'Contact', to: '/contact' },
-]
-
-const legalLinks = [
-  { label: 'Mentions légales', to: '/mentions-legales' },
-  { label: 'Confidentialité', to: '/politique-de-confidentialite' },
-  { label: 'CGU', to: '/conditions-generales' },
-  { label: 'Cookies', to: '/politique-cookies' },
+  { label: 'Le concept', to: '/le-concept' },
+  { label: 'Les céramiques', to: '/arti-ceramiques' },
+  { label: 'Infos pratiques', to: '/infos-pratiques' },
+  { label: 'Réserver', to: '/infos-pratiques#reserver' },
+  { label: 'Cadeaux', to: '/arti-cadeaux' },
 ]
 
 export function Footer() {
   return (
-    <footer className="bg-zinc-950 text-zinc-300">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Top: brand + nav columns */}
-        <div className="grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-16">
-          {/* Brand */}
-          <div className="space-y-4">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 font-display text-base font-semibold tracking-tight text-white"
-            >
-              <span className="flex size-7 items-center justify-center rounded-lg bg-white text-zinc-950">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-3.5">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-                  <path d="M2 12h20" />
-                </svg>
-              </span>
-              {siteConfig.name}
-            </Link>
-            <p className="max-w-sm text-sm leading-relaxed text-zinc-400">
-              {siteConfig.description}
+    <footer className="bg-beige text-foreground">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 sm:px-10 md:grid-cols-3 md:gap-8">
+        {/* Colonne gauche : Informations */}
+        <div className="space-y-4 text-sm leading-relaxed">
+          <h3 className="font-sans text-lg font-semibold tracking-tight text-foreground">
+            Informations
+          </h3>
+          <div className="space-y-2">
+            <p>
+              <span className="font-semibold">Adresse :</span>{' '}
+              {siteConfig.address.street}, {siteConfig.address.city}
+            </p>
+            <p>
+              <span className="font-semibold">Accès :</span>{' '}
+              {siteConfig.address.access}
+            </p>
+            <p>
+              <span className="font-semibold">Mail :</span>
+              <br />
+              <a
+                href={`mailto:${siteConfig.email}`}
+                className="transition-opacity hover:opacity-70"
+              >
+                {siteConfig.email}
+              </a>
+            </p>
+            <p>
+              <span className="font-semibold">Téléphone :</span>{' '}
+              <a
+                href={`tel:${siteConfig.phone.replace(/\s/g, '')}`}
+                className="transition-opacity hover:opacity-70"
+              >
+                {siteConfig.phoneDisplay}
+              </a>
             </p>
           </div>
-
-          {/* Navigation */}
-          <nav aria-label="Navigation">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Navigation
-            </h3>
-            <ul className="mt-5 space-y-3">
-              {navLinks.map((l) => (
-                <li key={l.label}>
-                  <Link
-                    href={l.to}
-                    className="group inline-flex items-center gap-1 text-sm text-zinc-300 transition-colors hover:text-white"
-                  >
-                    <span className="relative">
-                      {l.label}
-                      <span className="absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-white transition-transform duration-300 group-hover:scale-x-100" />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Legal */}
-          <nav aria-label="Légal">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Légal
-            </h3>
-            <ul className="mt-5 space-y-3">
-              {legalLinks.map((l) => (
-                <li key={l.label}>
-                  <Link
-                    href={l.to}
-                    className="group inline-flex items-center gap-1 text-sm text-zinc-300 transition-colors hover:text-white"
-                  >
-                    <span className="relative">
-                      {l.label}
-                      <span className="absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-white transition-transform duration-300 group-hover:scale-x-100" />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Contact */}
-          <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Contact
-            </h3>
-            <ul className="mt-5 space-y-3 text-sm">
-              <li>
-                <a
-                  href={`mailto:${siteConfig.email}`}
-                  className="group inline-flex items-center gap-1 text-zinc-300 transition-colors hover:text-white"
-                >
-                  {siteConfig.email}
-                  <ArrowUpRight className="size-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`tel:${siteConfig.phone}`}
-                  className="text-zinc-300 transition-colors hover:text-white"
-                >
-                  {siteConfig.phone}
-                </a>
-              </li>
-              <li className="text-zinc-500">
-                {siteConfig.address.street}
-                <br />
-                {siteConfig.address.postalCode} {siteConfig.address.city}
-              </li>
-            </ul>
-          </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-white/10" />
-
-        {/* Bottom bar */}
-        <div className="flex flex-col items-start justify-between gap-3 py-6 sm:flex-row sm:items-center">
-          <p className="text-xs text-zinc-500">
-            © {new Date().getFullYear()} {siteConfig.name}
-          </p>
-          <p className="text-xs text-zinc-500">
-            Tous droits réservés
-          </p>
-        </div>
-      </div>
-
-      {/* Bandeau de protection — mention anti-reproduction */}
-      <div className="bg-red-600 text-white">
-        <div className="mx-auto max-w-6xl px-4 py-4 text-center sm:px-6 lg:px-8">
-          <p className="text-sm font-bold uppercase tracking-wide">
-            Maquette de démonstration — Propriété exclusive de{' '}
-            <a
-              href={siteConfig.url}
-              className="underline underline-offset-2 transition-opacity hover:opacity-80"
+        {/* Colonne centre : Logo + Instagram + copyright */}
+        <div className="flex flex-col items-center justify-start gap-4 text-center text-sm">
+          <Logo size="md" />
+          <a
+            href={siteConfig.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram ARTI"
+            className="flex size-10 items-center justify-center rounded-full bg-sauge text-white transition-transform hover:scale-105"
+          >
+            <Instagram strokeWidth={1.8} className="size-5" />
+          </a>
+          <p className="max-w-xs text-xs leading-relaxed text-foreground/80">
+            © {new Date().getFullYear()}, articafeceramique.fr tous droits
+            réservés |{' '}
+            <Link
+              href="/politique-de-confidentialite"
+              className="underline-offset-2 hover:underline"
             >
-              {siteConfig.url.replace(/^https?:\/\/(www\.)?/, '').toUpperCase()}
-            </a>
+              Politique de confidentialité et mentions légales
+            </Link>{' '}
+            | Conception &amp; Réalisation
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-white/90">
-            Ce site est une présentation à but de démonstration uniquement. Toute reproduction,
-            exploitation ou utilisation à des fins professionnelles ou commerciales est strictement
-            interdite.
+          <p className="font-logo text-sm tracking-[0.25em] text-foreground">
+            VBWEB
           </p>
         </div>
+
+        {/* Colonne droite : Liens */}
+        <nav aria-label="Pied de page" className="md:text-right">
+          <ul className="space-y-2 text-sm">
+            {navLinks.map((l) => (
+              <li key={l.to}>
+                <Link
+                  href={l.to}
+                  className="inline-block transition-opacity hover:opacity-70"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </footer>
   )

@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Caveat', 'Brush Script MT', cursive;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-background: var(--background);
@@ -29,6 +29,16 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Tokens ARTI — palette propre au site */
+  --color-beige: var(--beige);
+  --color-beige-light: var(--beige-light);
+  --color-beige-deep: var(--beige-deep);
+  --color-sauge: var(--sauge);
+  --color-sauge-deep: var(--sauge-deep);
+  --color-terracotta: var(--terracotta);
+  --color-navy: var(--navy);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -53,119 +63,99 @@
 
 :root {
   color-scheme: light;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Caveat', 'Brush Script MT', cursive;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
-  --background: oklch(0.985 0.004 264);
-  --foreground: oklch(0.17 0.02 264);
+  /* === Palette ARTI ===
+     Beige sable (background principal), sauge (blocs/CTA), navy (texte),
+     terracotta (accents éditoriaux type "Category"). */
+  --beige: #EFE7D2;
+  --beige-light: #F5EFE0;
+  --beige-deep: #E3DABE;
+  --sauge: #9CAA8B;
+  --sauge-deep: #7E8D6E;
+  --navy: #1B2E4A;
+  --terracotta: #E89A6A;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.02 264);
+  --background: #EFE7D2;
+  --foreground: #1B2E4A;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.02 264);
+  --card: #FFFFFF;
+  --card-foreground: #1B2E4A;
 
-  /* Violet-indigo primary, direction artistique type Linear / Raycast */
-  --primary: oklch(0.48 0.22 285);
-  --primary-foreground: oklch(0.99 0.01 285);
+  --popover: #FFFFFF;
+  --popover-foreground: #1B2E4A;
 
-  --secondary: oklch(0.96 0.01 264);
-  --secondary-foreground: oklch(0.25 0.02 264);
+  --primary: #9CAA8B;
+  --primary-foreground: #FFFFFF;
 
-  --muted: oklch(0.965 0.008 264);
-  --muted-foreground: oklch(0.48 0.02 264);
+  --secondary: #F5EFE0;
+  --secondary-foreground: #1B2E4A;
 
-  --accent: oklch(0.955 0.02 285);
-  --accent-foreground: oklch(0.32 0.08 285);
+  --muted: #E8DFC6;
+  --muted-foreground: #5A6577;
+
+  --accent: #E89A6A;
+  --accent-foreground: #FFFFFF;
 
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 25);
 
-  --border: oklch(0.91 0.012 264);
-  --input: oklch(0.91 0.012 264);
-  --ring: oklch(0.58 0.18 285);
+  --border: rgba(27, 46, 74, 0.12);
+  --input: rgba(27, 46, 74, 0.12);
+  --ring: #9CAA8B;
 
-  --chart-1: oklch(0.58 0.2 285);
-  --chart-2: oklch(0.62 0.14 220);
-  --chart-3: oklch(0.72 0.12 185);
-  --chart-4: oklch(0.68 0.16 45);
-  --chart-5: oklch(0.6 0.2 330);
+  --chart-1: #9CAA8B;
+  --chart-2: #E89A6A;
+  --chart-3: #1B2E4A;
+  --chart-4: #E3DABE;
+  --chart-5: #7E8D6E;
 
-  --sidebar: oklch(0.98 0.006 264);
-  --sidebar-foreground: oklch(0.17 0.02 264);
-  --sidebar-primary: oklch(0.48 0.22 285);
-  --sidebar-primary-foreground: oklch(0.99 0.01 285);
-  --sidebar-accent: oklch(0.95 0.02 285);
-  --sidebar-accent-foreground: oklch(0.25 0.08 285);
-  --sidebar-border: oklch(0.91 0.012 264);
-  --sidebar-ring: oklch(0.58 0.18 285);
+  --sidebar: #F5EFE0;
+  --sidebar-foreground: #1B2E4A;
+  --sidebar-primary: #9CAA8B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EFE7D2;
+  --sidebar-accent-foreground: #1B2E4A;
+  --sidebar-border: rgba(27, 46, 74, 0.1);
+  --sidebar-ring: #9CAA8B;
 
-  /* Surfaces & effets premium */
-  --shadow-xs: 0 1px 2px oklch(0.2 0.02 264 / 0.04);
-  --shadow-sm: 0 2px 8px oklch(0.2 0.02 264 / 0.06);
-  --shadow-md: 0 8px 24px oklch(0.2 0.02 264 / 0.08);
-  --shadow-lg: 0 24px 48px oklch(0.2 0.02 264 / 0.1);
-  --glow: 0 0 80px oklch(0.55 0.2 285 / 0.25);
+  --shadow-xs: 0 1px 2px rgba(27, 46, 74, 0.04);
+  --shadow-sm: 0 2px 8px rgba(27, 46, 74, 0.06);
+  --shadow-md: 0 8px 24px rgba(27, 46, 74, 0.08);
+  --shadow-lg: 0 24px 48px rgba(27, 46, 74, 0.1);
+  --glow: 0 0 80px rgba(156, 170, 139, 0.25);
 }
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.13 0.02 264);
-  --foreground: oklch(0.97 0.008 264);
-
-  --card: oklch(0.17 0.02 264);
-  --card-foreground: oklch(0.97 0.008 264);
-
-  --popover: oklch(0.17 0.02 264);
-  --popover-foreground: oklch(0.97 0.008 264);
-
-  --primary: oklch(0.72 0.16 285);
-  --primary-foreground: oklch(0.14 0.04 285);
-
-  --secondary: oklch(0.22 0.02 264);
-  --secondary-foreground: oklch(0.96 0.01 264);
-
-  --muted: oklch(0.22 0.02 264);
-  --muted-foreground: oklch(0.68 0.02 264);
-
-  --accent: oklch(0.26 0.04 285);
-  --accent-foreground: oklch(0.92 0.04 285);
-
-  --destructive: oklch(0.62 0.2 25);
-  --destructive-foreground: oklch(0.98 0.01 25);
-
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.62 0.14 285);
-
-  --chart-1: oklch(0.62 0.2 285);
-  --chart-2: oklch(0.65 0.12 220);
-  --chart-3: oklch(0.72 0.1 185);
-  --chart-4: oklch(0.7 0.14 45);
-  --chart-5: oklch(0.62 0.18 330);
-
-  --sidebar: oklch(0.15 0.02 264);
-  --sidebar-foreground: oklch(0.97 0.008 264);
-  --sidebar-primary: oklch(0.72 0.16 285);
-  --sidebar-primary-foreground: oklch(0.14 0.04 285);
-  --sidebar-accent: oklch(0.24 0.04 285);
-  --sidebar-accent-foreground: oklch(0.96 0.04 285);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.62 0.14 285);
-
-  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.35);
-  --shadow-sm: 0 4px 12px oklch(0 0 0 / 0.35);
-  --shadow-md: 0 12px 32px oklch(0 0 0 / 0.4);
-  --shadow-lg: 0 32px 64px oklch(0 0 0 / 0.45);
-  --glow: 0 0 100px oklch(0.55 0.2 285 / 0.35);
+  --background: #1B2E4A;
+  --foreground: #F5EFE0;
+  --card: #243650;
+  --card-foreground: #F5EFE0;
+  --popover: #243650;
+  --popover-foreground: #F5EFE0;
+  --primary: #9CAA8B;
+  --primary-foreground: #1B2E4A;
+  --secondary: #2A3D5A;
+  --secondary-foreground: #F5EFE0;
+  --muted: #2A3D5A;
+  --muted-foreground: #B6AF96;
+  --accent: #E89A6A;
+  --accent-foreground: #1B2E4A;
+  --border: rgba(245, 239, 224, 0.12);
+  --input: rgba(245, 239, 224, 0.14);
+  --ring: #9CAA8B;
 }
 
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.005em;
   }
 
   .font-serif {
@@ -174,6 +164,28 @@
 
   .font-mono {
     font-family: var(--font-mono);
+  }
+
+  .font-handwritten {
+    font-family: var(--font-display);
+    font-weight: 500;
+  }
+
+  /* Logo ARTI : capitales fines avec letter-spacing élargi */
+  .font-logo {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* Eyebrow label (terracotta italique) */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--terracotta);
+    font-size: 1.5rem;
+    line-height: 1;
   }
 
   .animate-marquee-left {
@@ -209,8 +221,14 @@
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
     font-feature-settings:
       'rlig' 1,
-      'calt' 1,
-      'ss01' 1;
+      'calt' 1;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    color: var(--navy);
   }
 }
 

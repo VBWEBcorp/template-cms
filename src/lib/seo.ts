@@ -1,20 +1,34 @@
 export const siteConfig = {
-  name: 'Nom Entreprise',
-  url: 'https://ouibo.fr',
+  name: 'ARTI Café Céramique',
+  shortName: 'ARTI',
+  url: 'https://articafeceramique.fr',
   locale: 'fr_FR',
   description:
-    'Votre entreprise - description courte et percutante de votre activité. Adaptez cette ligne à votre domaine.',
-  ogImage: 'https://www.example.com/og.png',
-  twitterHandle: '@votrecompte',
-  themeColor: '#6d28d9',
-  phone: '+33 1 23 45 67 89',
-  email: 'contact@example.com',
+    'ARTI est un coffee shop et atelier de peinture sur céramique au cœur de Rennes. Vivez un moment créatif unique en personnalisant la pièce de votre choix tout en dégustant un délicieux goûter.',
+  ogImage: 'https://articafeceramique.fr/og.png',
+  twitterHandle: '@articafeceramique',
+  themeColor: '#9CAA8B',
+  phone: '+33 6 33 11 30 54',
+  phoneDisplay: '06 33 11 30 54',
+  email: 'hello@articafeceramique.fr',
+  instagram: 'https://www.instagram.com/articafeceramique/',
   address: {
-    street: '12 Rue Exemple',
-    city: 'Paris',
-    postalCode: '75001',
+    street: '10 rue Poullain Duparc',
+    city: 'Rennes',
+    postalCode: '35000',
     country: 'FR',
+    access: 'Métro République, Bus C4',
   },
+  openingHours: [
+    { day: 'Lundi', value: 'fermé' },
+    { day: 'Mardi', value: 'fermé' },
+    { day: 'Mercredi', value: '10H-19H' },
+    { day: 'Jeudi', value: '14H-20H' },
+    { day: 'Vendredi', value: '14H-20H' },
+    { day: 'Samedi', value: '10H-19H' },
+    { day: 'Dimanche', value: '10H-18H' },
+  ],
+  reservationUrl: 'https://articafeceramique.fr/reserver',
 } as const
 
 export type SeoMeta = {
@@ -29,16 +43,18 @@ export type SeoMeta = {
 
 export function buildTitle(page?: string) {
   if (!page) return siteConfig.name
-  return `${page} - ${siteConfig.name}`
+  return `${page} | ${siteConfig.name}`
 }
 
 export const routes = [
   '/',
-  '/a-propos',
-  '/services',
-  '/contact',
+  '/le-concept',
+  '/arti-ceramiques',
+  '/peinture-sur-ceramique-a-rennes',
+  '/infos-pratiques',
+  '/arti-cadeaux',
+  '/boutique',
+  '/faq',
   '/mentions-legales',
   '/politique-de-confidentialite',
-  '/conditions-generales',
-  '/politique-cookies',
 ] as const

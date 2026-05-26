@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
+import { Caveat, Cormorant_Garamond, JetBrains_Mono, Poppins } from 'next/font/google'
 
 import { RootWrapper } from '@/components/layout/root-wrapper'
 import { ThemeScript } from '@/components/theme/theme-script'
@@ -7,33 +7,34 @@ import { siteConfig } from '@/lib/seo'
 
 import '../index.css'
 
-const inter = Inter({
+// Corps de texte — Poppins, lisible et chaleureux
+const poppins = Poppins({
   subsets: ['latin'],
   variable: '--font-sans',
+  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 })
 
-const jakarta = Plus_Jakarta_Sans({
+// Titres manuscrits — Caveat (signature handwriting d'ARTI)
+const caveat = Caveat({
   subsets: ['latin'],
   variable: '--font-display',
-  weight: ['500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 })
 
-// Serif italic — pour mots accentués dans les titres (style éditorial premium)
-const instrumentSerif = Instrument_Serif({
+// Serif — pour le logo ARTI (capitales fines)
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   variable: '--font-serif',
-  weight: ['400'],
-  style: ['normal', 'italic'],
+  weight: ['300', '400', '500'],
   display: 'swap',
 })
 
-// Mono — pour eyebrows, KPIs, labels techniques (style Linear/Vercel)
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
-  weight: ['400', '500', '600'],
+  weight: ['400', '500'],
   display: 'swap',
 })
 
@@ -89,7 +90,7 @@ export default function RootLayout({
     <html
       lang="fr"
       dir="ltr"
-      className={`${inter.variable} ${jakarta.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`${poppins.variable} ${caveat.variable} ${cormorant.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>

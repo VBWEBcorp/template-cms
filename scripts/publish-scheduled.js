@@ -70,7 +70,7 @@ const articles = [
     author: "L'équipe",
     published: true,
     publishedAt: new Date('2026-06-02T08:00:00'),
-    metaTitle: 'Référencement local : guide pour attirer des clients de proximité',
+    metaTitle: 'Référencement local : attirer des clients de proximité',
     metaDescription:
       "Apparaissez dans les recherches locales et sur Google Maps : fiche Google Business, avis clients, contenu géolocalisé et maillage interne.",
   },
@@ -102,7 +102,7 @@ const articles = [
     author: "L'équipe",
     published: true,
     publishedAt: new Date('2026-06-09T08:00:00'),
-    metaTitle: 'Core Web Vitals : optimiser la vitesse et le SEO de votre site',
+    metaTitle: 'Core Web Vitals : optimiser la vitesse de votre site',
     metaDescription:
       'LCP, INP, CLS : comprenez les Core Web Vitals et appliquez des optimisations concrètes pour un site plus rapide et mieux référencé.',
   },
@@ -194,7 +194,7 @@ const articles = [
     author: "L'équipe",
     published: true,
     publishedAt: new Date('2026-06-30T08:00:00'),
-    metaTitle: 'Rédiger un article de blog optimisé SEO : méthode et conseils',
+    metaTitle: 'Rédiger un article de blog optimisé pour le SEO',
     metaDescription:
       "Intention de recherche, mots-clés, structure, titres et maillage interne : la méthode pour écrire des articles de blog qui se positionnent sur Google.",
   },
@@ -255,7 +255,7 @@ const articles = [
     author: "L'équipe",
     published: true,
     publishedAt: new Date('2026-07-14T08:00:00'),
-    metaTitle: 'Augmenter le taux de conversion de son site : leviers concrets',
+    metaTitle: 'Augmenter le taux de conversion de votre site',
     metaDescription:
       "Proposition de valeur, appels à l'action, réduction des freins et performance : les leviers pour transformer vos visiteurs en clients.",
   },

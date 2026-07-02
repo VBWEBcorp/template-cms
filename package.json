@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "browserslist": [
+    "last 2 years",
+    "not dead"
+  ],
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",
     "@radix-ui/react-slot": "^1.2.4",

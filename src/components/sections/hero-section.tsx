@@ -27,7 +27,7 @@ function splitTitle(title: string): { lead: string; accent: string } {
 export function HeroSection() {
   const { data } = useContent('home', { hero: defaults })
   const hero = data.hero ?? defaults
-  const images: string[] = hero.images ?? defaults.images
+  const images: string[] = hero.images?.length ? hero.images : defaults.images
   const [current, setCurrent] = useState(0)
   const { lead, accent } = splitTitle(hero.title)
 
@@ -58,6 +58,8 @@ export function HeroSection() {
               fill
               sizes="100vw"
               priority={current === 0}
+              fetchPriority={current === 0 ? 'high' : 'auto'}
+              quality={72}
               className="object-cover"
             />
           </motion.div>

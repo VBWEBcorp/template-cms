@@ -76,6 +76,7 @@ export function NewsletterSignup({ source = 'footer', className }: Props) {
         <button
           type="submit"
           disabled={status === 'loading'}
+          aria-label="S'inscrire à la newsletter"
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {status === 'loading' ? (

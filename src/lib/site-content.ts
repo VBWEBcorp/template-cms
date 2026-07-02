@@ -22,10 +22,9 @@
 // la performance.
 
 export const images = {
-  // Hero homepage — 3 images qui défilent en carousel
+  // Hero homepage — images qui défilent en carousel
   heroCarousel: [
     'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80',
-    'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80',
     'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1920&q=80',
   ],
 

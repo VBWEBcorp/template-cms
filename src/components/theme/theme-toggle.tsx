@@ -25,7 +25,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     <button
       type="button"
       className={cn(
-        'inline-flex size-6 items-center justify-center rounded-full text-muted-foreground/40 transition-all duration-300 hover:text-foreground hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+        'inline-flex size-6 items-center justify-center rounded-full text-muted-foreground transition-all duration-300 hover:text-foreground hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
         className
       )}
       aria-label={dark ? 'Passer en thème clair' : 'Passer en thème sombre'}

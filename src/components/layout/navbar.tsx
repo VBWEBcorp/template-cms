@@ -133,7 +133,7 @@ export function Navbar() {
                       'group relative whitespace-nowrap rounded-xl px-3 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
                       isActive
                         ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                        : 'text-foreground hover:text-primary'
                     )}
                   >
                     {/* Hover background qui suit la souris */}

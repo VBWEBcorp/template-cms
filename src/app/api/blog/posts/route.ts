@@ -4,6 +4,7 @@ import { BlogPost } from '@/models/Blog'
 import { verifyAuth } from '@/lib/auth'
 import { visiblePostFilter } from '@/lib/blog-filters'
 import { notifyNewPost } from '@/lib/notify-subscribers'
+import { submitIndexNow } from '@/lib/indexnow'
 
 // GET all posts (admin: all visible + own drafts; public: visible only)
 // "Visible" = published AND publishedAt <= now (articles with future publishedAt
@@ -72,6 +73,11 @@ export async function POST(request: NextRequest) {
 
     // Nouvel article créé directement en publié → annonce aux abonnés (best-effort)
     await notifyNewPost(post, false)
+
+    // Soumission instantanée aux moteurs si publié (best-effort)
+    if (post.published) {
+      await submitIndexNow([`/blog/${post.slug}`, '/blog'])
+    }
 
     return NextResponse.json(post, { status: 201 })
   } catch (error) {

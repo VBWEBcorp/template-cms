@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from 'next
 
 import { RootWrapper } from '@/components/layout/root-wrapper'
 import { ThemeScript } from '@/components/theme/theme-script'
+import { organizationJsonLd, webSiteJsonLd } from '@/components/seo/json-ld'
 import { siteConfig } from '@/lib/seo'
 
 import '../index.css'
@@ -44,21 +45,18 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  // og:title / og:description / og:url laissés vides ici : Next les remplit par
+  // page (title/description propres + URL canonique). L'image og:image/twitter:image
+  // vient de la convention src/app/opengraph-image.tsx.
   openGraph: {
     type: 'website',
     locale: siteConfig.locale,
-    url: siteConfig.url,
     siteName: siteConfig.name,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    images: [{ url: siteConfig.ogImage }],
   },
   twitter: {
     card: 'summary_large_image',
-    site: siteConfig.twitterHandle,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
+    // Émis seulement si un compte est configuré (évite un twitter:site vide).
+    ...(siteConfig.twitterHandle ? { site: siteConfig.twitterHandle } : {}),
   },
   robots: {
     index: true,
@@ -67,9 +65,10 @@ export const metadata: Metadata = {
     'max-snippet': -1,
     'max-video-preview': -1,
   },
+  // apple-touch-icon via la convention src/app/apple-icon.tsx ; manifest via
+  // src/app/manifest.ts. Favicon = le SVG existant.
   icons: {
     icon: '/favicon.svg',
-    apple: '/apple-touch-icon.png',
   },
   alternates: {
     canonical: '/',
@@ -96,6 +95,16 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="flex min-h-dvh flex-col">
+        {/* Entité de marque émise sur chaque page (Organization + WebSite, @id stables). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [organizationJsonLd(), webSiteJsonLd()],
+            }),
+          }}
+        />
         <RootWrapper>{children}</RootWrapper>
       </body>
     </html>

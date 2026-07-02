@@ -4,6 +4,7 @@ import { BlogPost } from '@/models/Blog'
 import { verifyAuth } from '@/lib/auth'
 import { visiblePostFilter } from '@/lib/blog-filters'
 import { notifyNewPost } from '@/lib/notify-subscribers'
+import { submitIndexNow } from '@/lib/indexnow'
 
 type Params = Promise<{ slug: string }>
 
@@ -70,6 +71,11 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
 
     // Annonce aux abonnés si l'article vient de passer en publié (best-effort)
     await notifyNewPost(post, before?.published === true)
+
+    // Soumission instantanée aux moteurs si publié (best-effort)
+    if (post.published) {
+      await submitIndexNow([`/blog/${post.slug}`, '/blog'])
+    }
 
     return NextResponse.json(post)
   } catch (error) {

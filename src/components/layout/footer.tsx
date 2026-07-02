@@ -151,10 +151,10 @@ export function Footer() {
           <p className="text-sm font-bold uppercase tracking-wide">
             Maquette de démonstration — Propriété exclusive de{' '}
             <a
-              href={siteConfig.url}
+              href="https://vbweb.fr"
               className="underline underline-offset-2 transition-opacity hover:opacity-80"
             >
-              {siteConfig.url.replace(/^https?:\/\/(www\.)?/, '').toUpperCase()}
+              VBWEB.fr
             </a>
           </p>
           <p className="mt-1 text-xs leading-relaxed text-white/90">

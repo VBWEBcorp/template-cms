@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react'
 import { CookieConsent } from '@/components/layout/cookie-consent'
 import { Footer } from '@/components/layout/footer'
 import { MarketingBanner } from '@/components/marketing-banner'
-import { MarketingPopup } from '@/components/marketing-popup'
+// Popup marketing désactivé : décommenter la ligne ci-dessous ET son montage plus bas pour le réactiver.
+// import { MarketingPopup } from '@/components/marketing-popup'
 import { Navbar } from '@/components/layout/navbar'
 import { ScrollToTop } from '@/components/scroll-to-top'
 
@@ -34,7 +35,8 @@ export function RootWrapper({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <ScrollToTop />
-      <MarketingPopup />
+      {/* Popup marketing désactivé (décommenter pour réactiver) */}
+      {/* <MarketingPopup /> */}
       <CookieConsent />
     </>
   )

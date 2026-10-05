@@ -1,13 +1,26 @@
-import crypto from 'crypto'
-import { siteConfig } from '@/lib/seo'
+import 'server-only'
+
+import crypto from 'node:crypto'
+
+import { siteConfig } from '@/config/site'
+import { resolveSender } from '@/lib/sender'
 
 const API_KEY = process.env.RESEND_API_KEY
-const FROM = process.env.NEWSLETTER_FROM_EMAIL || process.env.CONTACT_FROM_EMAIL || ''
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || siteConfig.url).replace(/\/$/, '')
-const UNSUB_SECRET = process.env.JWT_SECRET || 'dev-secret-key'
+const SITE_URL = siteConfig.url
+const UNSUB_SECRET = process.env.JWT_SECRET || 'secret-de-developpement-uniquement'
 
-/** True si l'envoi d'e-mails est configuré (clé Resend + adresse expéditrice). */
-export const emailEnabled = Boolean(API_KEY && FROM)
+// Expéditeur unique de tous les envois (formulaire, newsletter, annonces).
+// EMAIL_FROM : « Nom <contact@domaine-du-client.fr> », domaine validé dans Resend.
+const sender = resolveSender({
+  configured: process.env.EMAIL_FROM || process.env.NEWSLETTER_FROM_EMAIL || process.env.CONTACT_FROM_EMAIL,
+  siteName: siteConfig.name,
+  siteUrl: siteConfig.url,
+})
+if (sender.warning && API_KEY) console.warn('[email]', sender.warning)
+const FROM = sender.from
+
+/** Vrai si l'envoi d'e-mails est configuré (clé Resend présente). */
+export const emailEnabled = Boolean(API_KEY)
 
 // ── Désinscription : jeton signé (HMAC) pour ne pas exposer une désinscription
 //    arbitraire d'un e-mail tiers, sans avoir à stocker un token par abonné. ──
@@ -30,7 +43,7 @@ function escapeHtml(s: string): string {
 }
 
 interface SendArgs {
-  to: string
+  to: string | string[]
   subject: string
   html: string
   text: string
@@ -38,7 +51,7 @@ interface SendArgs {
 }
 
 /**
- * Envoi d'un e-mail via l'API REST de Resend — aucune dépendance npm.
+ * Envoi d'un e-mail via l'API REST de Resend, sans dépendance npm.
  * - Retourne { sent: false } si l'envoi n'est pas configuré (pas de clé / expéditeur).
  * - Lève une erreur en cas d'échec réseau ou réponse non-2xx (à attraper par l'appelant).
  */
@@ -78,7 +91,7 @@ export async function sendNewsletterWelcome(to: string): Promise<{ sent: boolean
     `Merci de votre inscription à la newsletter de ${brand} !\n` +
     `Vous recevrez désormais nos actualités, conseils et nouveautés directement par e-mail.\n\n` +
     `À très bientôt,\nL'équipe ${brand}\n\n` +
-    `—\n` +
+    `-- \n` +
     `Vous recevez cet e-mail car cette adresse a été inscrite sur ${siteConfig.url}. ` +
     `Si vous n'êtes pas à l'origine de cette inscription, ignorez simplement ce message.`
 
@@ -100,7 +113,7 @@ export async function sendNewsletterWelcome(to: string): Promise<{ sent: boolean
             <p style="margin:0;">L'équipe ${brand}</p>
           </td></tr>
           <tr><td style="padding:16px 32px 28px;">
-            <a href="${siteConfig.url}" style="display:inline-block;background:#6d28d9;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;">Visiter le site</a>
+            <a href="${siteConfig.url}" style="display:inline-block;background:${siteConfig.theme.themeColor};color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;">Visiter le site</a>
           </td></tr>
           <tr><td style="padding:16px 32px;background:#fafafa;border-top:1px solid #f0f0f0;font-size:11px;line-height:1.5;color:#a1a1aa;">
             Vous recevez cet e-mail car cette adresse a été inscrite sur ${siteConfig.url}.
@@ -126,7 +139,7 @@ function buildCampaignEmail(subject: string, message: string, unsubUrl: string):
   const bodyHtml = paragraphs.map((p) => `<p style="margin:0 0 14px;">${p}</p>`).join('')
 
   const text =
-    `${message}\n\n—\n${brand}\n` +
+    `${message}\n\n-- \n${brand}\n` +
     `Se désinscrire : ${unsubUrl}`
 
   const html = `<!doctype html>
@@ -220,7 +233,7 @@ function buildBlogEmail(post: BlogNotice, unsubUrl: string): { subject: string; 
   const text =
     `${post.title}\n\n` +
     (post.excerpt ? `${post.excerpt}\n\n` : '') +
-    `Lire l'article : ${articleUrl}\n\n—\n${brand}\n` +
+    `Lire l'article : ${articleUrl}\n\n-- \n${brand}\n` +
     `Se désinscrire : ${unsubUrl}`
 
   const html = `<!doctype html>
@@ -231,12 +244,12 @@ function buildBlogEmail(post: BlogNotice, unsubUrl: string): { subject: string; 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7;">
           ${cover ? `<tr><td><img src="${cover}" alt="" width="560" style="display:block;width:100%;max-height:260px;object-fit:cover;" /></td></tr>` : ''}
           <tr><td style="padding:28px 32px 4px;">
-            <p style="margin:0 0 6px;color:#6d28d9;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Nouvel article</p>
+            <p style="margin:0 0 6px;color:${siteConfig.theme.themeColor};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Nouvel article</p>
             <h1 style="margin:0;font-size:21px;font-weight:700;line-height:1.3;">${escapeHtml(post.title)}</h1>
           </td></tr>
           ${post.excerpt ? `<tr><td style="padding:12px 32px 4px;font-size:15px;line-height:1.6;color:#3f3f46;"><p style="margin:0;">${escapeHtml(post.excerpt)}</p></td></tr>` : ''}
           <tr><td style="padding:20px 32px 28px;">
-            <a href="${articleUrl}" style="display:inline-block;background:#6d28d9;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:11px 22px;border-radius:10px;">Lire l'article</a>
+            <a href="${articleUrl}" style="display:inline-block;background:${siteConfig.theme.themeColor};color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:11px 22px;border-radius:10px;">Lire l'article</a>
           </td></tr>
           <tr><td style="padding:16px 32px;background:#fafafa;border-top:1px solid #f0f0f0;font-size:11px;line-height:1.6;color:#a1a1aa;">
             Vous recevez cet e-mail car vous êtes inscrit à la newsletter de ${escapeHtml(brand)}.

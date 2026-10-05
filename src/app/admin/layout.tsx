@@ -1,61 +1,66 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+import { AdminProviders } from '@/components/admin/admin-providers'
 import { AdminSidebar, MobileMenuButton } from '@/components/admin/sidebar'
 import { SidebarProvider, useSidebar } from '@/components/admin/sidebar-context'
-import { AdminProviders } from '@/components/admin/admin-providers'
+import { clearSession, endSession, getToken, hasValidSession } from '@/lib/admin-session'
 import { cn } from '@/lib/utils'
 
-const publicPaths = ['/admin/login', '/admin/register']
+const PUBLIC_PATHS = ['/admin/login']
 
 function AdminMain({ children }: { children: React.ReactNode }) {
   const { collapsed, isMobile } = useSidebar()
   return (
-    <main className={cn(
-      'flex-1 min-h-screen bg-muted/30 transition-all duration-200',
-      isMobile ? 'ml-0' : collapsed ? 'ml-[60px]' : 'ml-[220px]'
-    )}>
+    <main
+      className={cn(
+        'min-h-screen flex-1 bg-muted/30 transition-all duration-200',
+        isMobile ? 'ml-0' : collapsed ? 'ml-[60px]' : 'ml-[220px]'
+      )}
+    >
       {children}
     </main>
   )
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+/**
+ * Garde de l'espace admin.
+ *
+ * Une session n'est reconnue que si le jeton est présent ET non expiré
+ * (src/lib/admin-session.ts). Un jeton périmé est purgé avant la moindre
+ * redirection : c'est ce qui casse la boucle connexion / tableau de bord.
+ */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [authenticated, setAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  const isPublicPage = publicPaths.includes(pathname)
+  const isPublicPage = PUBLIC_PATHS.includes(pathname)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
+    const valid = hasValidSession()
 
     if (isPublicPage) {
-      if (token) {
-        router.push('/admin/dashboard')
+      if (valid) {
+        router.replace('/admin/dashboard')
+        return
       }
-      setLoading(false)
+      // Jeton éventuellement présent mais mort : on le retire pour repartir propre.
+      clearSession()
+      setReady(true)
       return
     }
 
-    if (!token) {
-      router.push('/admin/login')
+    if (!valid) {
+      endSession(getToken() ? 'expired' : 'logout')
       return
     }
+    setReady(true)
+  }, [isPublicPage, router])
 
-    setAuthenticated(true)
-    setLoading(false)
-  }, [router, isPublicPage])
-
-  if (loading) return null
+  if (!ready) return null
   if (isPublicPage) return children
-  if (!authenticated) return null
 
   return (
     <AdminProviders>

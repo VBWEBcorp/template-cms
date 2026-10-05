@@ -1,24 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { ArrowRight, Lock, Mail, Shield } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowRight, Lock, Mail, Shield } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
-const ease = [0.22, 1, 0.36, 1] as const
+import { startSession } from '@/lib/admin-session'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('expired') === '1') {
+      setNotice('Votre session a expiré. Reconnectez-vous pour continuer.')
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,17 +36,17 @@ export default function AdminLoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-
-      if (!response.ok) {
-        const data = await response.json()
+      const data = (await response.json().catch(() => ({}))) as {
+        token?: string
+        user?: { email: string; name?: string; role?: string }
+        error?: string
+      }
+      if (!response.ok || !data.token || !data.user) {
         throw new Error(data.error || 'Identifiants invalides')
       }
 
-      const data = await response.json()
-      localStorage.setItem('authToken', data.token)
-      localStorage.setItem('authUser', JSON.stringify(data.user))
-
-      router.push('/admin/dashboard')
+      startSession(data.token, data.user)
+      router.replace('/admin/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion')
     } finally {
@@ -51,7 +56,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Background image */}
       <div className="absolute inset-0 -z-10">
         <Image
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=75"
@@ -65,14 +69,12 @@ export default function AdminLoginPage() {
         <div className="absolute inset-0 backdrop-blur-[2px]" />
       </div>
 
-      {/* Decorative ambient glow */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 size-[480px] rounded-full bg-primary/20 blur-[140px]" />
-        <div className="absolute -bottom-40 -right-20 size-[420px] rounded-full bg-sky-400/15 blur-[140px]" />
+        <div className="absolute -right-20 -bottom-40 size-[420px] rounded-full bg-sky-400/15 blur-[140px]" />
       </div>
 
       <div className="flex min-h-screen flex-col">
-        {/* Header */}
         <header className="flex items-center justify-between px-6 py-6 sm:px-10 sm:py-8">
           <Link
             href="/"
@@ -86,15 +88,8 @@ export default function AdminLoginPage() {
           </div>
         </header>
 
-        {/* Centered content */}
         <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease }}
-            className="w-full max-w-md"
-          >
-            {/* Title outside card */}
+          <div className="animate-fade-up w-full max-w-md">
             <div className="mb-8 text-center sm:mb-10">
               <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md">
                 <Lock className="size-5 text-white" />
@@ -102,20 +97,23 @@ export default function AdminLoginPage() {
               <h1 className="font-display text-3xl font-bold tracking-[-0.02em] text-white sm:text-4xl">
                 Espace admin
               </h1>
-              <p className="mt-2 text-sm text-white/70">
-                Connectez-vous pour gérer le contenu du site
-              </p>
+              <p className="mt-2 text-sm text-white/70">Connectez-vous pour gérer le contenu du site</p>
             </div>
 
-            {/* Glassmorphism card */}
             <div className="rounded-3xl border border-white/15 bg-white/[0.07] p-6 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-8">
               <form onSubmit={handleLogin} className="space-y-5">
+                {notice && !error && (
+                  <p className="rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2.5 text-sm text-amber-50">
+                    {notice}
+                  </p>
+                )}
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-white/70">
+                  <Label htmlFor="email" className="text-xs font-medium tracking-wide text-white/70 uppercase">
                     Email
                   </Label>
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" />
+                    <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/50" />
                     <Input
                       id="email"
                       type="email"
@@ -129,11 +127,11 @@ export default function AdminLoginPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-white/70">
+                  <Label htmlFor="password" className="text-xs font-medium tracking-wide text-white/70 uppercase">
                     Mot de passe
                   </Label>
                   <div className="relative">
-                    <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/50" />
+                    <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/50" />
                     <Input
                       id="password"
                       type="password"
@@ -147,13 +145,12 @@ export default function AdminLoginPage() {
                 </div>
 
                 {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-100"
+                  <div
+                    role="alert"
+                    className="animate-fade-in rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-100"
                   >
                     {error}
-                  </motion.div>
+                  </div>
                 )}
 
                 <Button
@@ -170,34 +167,11 @@ export default function AdminLoginPage() {
                     </>
                   )}
                 </Button>
-
-                <div className="relative flex items-center gap-3 py-1">
-                  <span className="h-px flex-1 bg-white/15" />
-                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">ou</span>
-                  <span className="h-px flex-1 bg-white/15" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    localStorage.setItem('authToken', 'demo-token')
-                    localStorage.setItem(
-                      'authUser',
-                      JSON.stringify({ email: 'demo@template.com', name: 'Demo', role: 'admin' })
-                    )
-                    router.push('/admin/dashboard')
-                  }}
-                  className="group flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-medium text-white transition-all hover:border-white/25 hover:bg-white/10"
-                >
-                  Accès démo
-                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </button>
               </form>
             </div>
-          </motion.div>
+          </div>
         </main>
 
-        {/* Footer */}
         <footer className="px-6 py-6 text-center sm:px-10 sm:py-8">
           <Link
             href="/politique-de-confidentialite"

@@ -1,23 +1,25 @@
+import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { GalleryImage } from '@/models/Gallery'
-import { verifyAuth } from '@/lib/auth'
+import { isAdminRequest, verifyAuth } from '@/lib/auth'
 
-// GET all gallery images (public - only active)
-export async function GET() {
+// Images de la galerie : visibles seulement pour le public, toutes pour l'admin.
+export async function GET(request: NextRequest) {
   try {
+    const admin = await isAdminRequest(request)
     await connectDB()
-    const images = await GalleryImage.find({ active: true })
+    const images = await GalleryImage.find(admin ? {} : { active: true })
       .sort({ order: 1 })
       .lean()
     return NextResponse.json(images, {
       headers: {
-        'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
+        'Cache-Control': admin ? 'no-store' : 'public, max-age=0, s-maxage=10, stale-while-revalidate=20',
       },
     })
   } catch (error) {
     console.error('Gallery images error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     await connectDB()
@@ -47,9 +49,11 @@ export async function POST(request: NextRequest) {
       order: order || 0,
     })
 
+    // Pages statiques régénérées : la modification est visible tout de suite.
+    revalidatePath('/', 'layout')
     return NextResponse.json(image, { status: 201 })
   } catch (error) {
     console.error('Gallery image creation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

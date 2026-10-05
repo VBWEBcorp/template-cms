@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     const formData = await request.formData()

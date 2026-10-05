@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { GalleryImage } from '@/models/Gallery'
@@ -21,10 +22,12 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
       return NextResponse.json({ error: 'Image not found' }, { status: 404 })
     }
 
+    // Pages statiques régénérées : la modification est visible tout de suite.
+    revalidatePath('/', 'layout')
     return NextResponse.json(image)
   } catch (error) {
     console.error('Gallery image error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
@@ -33,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     const { id } = await params
@@ -55,10 +58,12 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
       return NextResponse.json({ error: 'Image not found' }, { status: 404 })
     }
 
+    // Pages statiques régénérées : la modification est visible tout de suite.
+    revalidatePath('/', 'layout')
     return NextResponse.json(image)
   } catch (error) {
     console.error('Gallery image update error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
@@ -67,7 +72,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Params 
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     const { id } = await params
@@ -83,9 +88,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Params 
       return NextResponse.json({ error: 'Image not found' }, { status: 404 })
     }
 
+    // Pages statiques régénérées : la modification est visible tout de suite.
+    revalidatePath('/', 'layout')
     return NextResponse.json({ message: 'Image deleted' })
   } catch (error) {
     console.error('Gallery image delete error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

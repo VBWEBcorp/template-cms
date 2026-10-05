@@ -1,74 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { revalidatePath } from 'next/cache'
+import { NextResponse } from 'next/server'
+
+import { isAdminRequest } from '@/lib/auth'
+import { connectDB, isDbConfigured } from '@/lib/db'
+import { DEFAULT_MARKETING, normalizeMarketing } from '@/lib/marketing'
 import { MarketingPopup } from '@/models/Marketing'
-import { verifyAuth } from '@/lib/auth'
 
-const defaultPopup = {
-  enabled: false,
-  title: 'Offre spéciale',
-  description: 'Profitez de nos offres exclusives dès maintenant !',
-  buttonText: 'En savoir plus',
-  buttonLink: '#',
-  imageUrl: '',
-  bgColor: '#ffffff',
-  textColor: '#111827',
-  buttonColor: '#2563eb',
-  delay: 5,
-  banner: {
-    enabled: false,
-    text: '',
-    link: '',
-    bgColor: '#111827',
-    textColor: '#ffffff',
-  },
-}
-
-const CACHE_HEADERS = {
-  'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
-}
-
-// GET marketing popup settings (public)
+/** Réglages marketing (popup + bandeau). Le site les lit côté serveur ; cette route sert l'admin. */
 export async function GET() {
+  if (!isDbConfigured()) return NextResponse.json(DEFAULT_MARKETING)
   try {
     await connectDB()
-    const popup = await MarketingPopup.findOne().lean()
-
-    if (!popup) {
-      return NextResponse.json(defaultPopup, { headers: CACHE_HEADERS })
-    }
-
-    return NextResponse.json(popup, { headers: CACHE_HEADERS })
+    const doc = await MarketingPopup.findOne().lean()
+    return NextResponse.json(doc ? normalizeMarketing(doc) : DEFAULT_MARKETING, {
+      headers: { 'Cache-Control': 'no-store' },
+    })
   } catch (error) {
-    console.error('Marketing popup error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[marketing GET]', error)
+    return NextResponse.json({ error: 'Base de données injoignable' }, { status: 503 })
   }
 }
 
-// UPDATE marketing popup settings (admin only)
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
+  if (!isDbConfigured()) {
+    return NextResponse.json({ error: 'Base de données non configurée : impossible d’enregistrer.' }, { status: 503 })
+  }
   try {
-    const { authenticated, user } = await verifyAuth(request)
-    if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    const settings = normalizeMarketing(await request.json())
     await connectDB()
-    const body = await request.json()
-
-    let popup = await MarketingPopup.findOne()
-    if (!popup) {
-      popup = await MarketingPopup.create(body)
-    } else {
-      const fields = ['enabled', 'title', 'description', 'buttonText', 'buttonLink', 'imageUrl', 'bgColor', 'textColor', 'buttonColor', 'delay', 'banner']
-      for (const field of fields) {
-        if (body[field] !== undefined) (popup as any)[field] = body[field]
-      }
-      await popup.save()
-    }
-
-    return NextResponse.json(popup)
+    await MarketingPopup.findOneAndUpdate({}, settings, { upsert: true, new: true })
+    // Le bandeau et la popup sont rendus avec les pages : on les régénère toutes.
+    revalidatePath('/', 'layout')
+    return NextResponse.json(settings)
   } catch (error) {
-    console.error('Marketing popup update error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[marketing PUT]', error)
+    return NextResponse.json({ error: 'Enregistrement impossible' }, { status: 500 })
   }
 }

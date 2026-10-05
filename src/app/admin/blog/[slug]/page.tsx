@@ -13,6 +13,9 @@ import { RichEditor } from '@/components/admin/rich-editor'
 import { useToast } from '@/components/admin/toast'
 import { useConfirm } from '@/components/admin/confirm-dialog'
 import { AdminLoading } from '@/components/admin/admin-ui'
+import { siteConfig } from '@/config/site'
+import { BLOG_BASE } from '@/lib/blog-defaults'
+import { adminJson, errorMessage } from '@/lib/admin-session'
 
 interface BlogPost {
   _id?: string
@@ -30,7 +33,11 @@ interface BlogPost {
   metaDescription?: string
   notifyOnPublish?: boolean
   newsletterSentAt?: string
+  /** 'phare' : article déposé par l'outil SEO de l'agence. */
+  source?: string
 }
+
+const siteHost = siteConfig.url.replace(/^https?:\/\//, '')
 
 const emptyPost: BlogPost = {
   title: '',
@@ -61,36 +68,32 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
   const [categories, setCategories] = useState<string[]>([])
 
   useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
-      router.push('/admin/login')
-    }
-    // Fetch categories from settings
-    fetch('/api/blog/settings')
-      .then((r) => r.json())
+    adminJson<{ categories?: string[] }>('/api/blog/settings')
       .then((s) => setCategories(s.categories || []))
-      .catch(() => {})
-  }, [router])
+      .catch(() => {
+        // Sans catégories, le champ reste en saisie libre.
+      })
+  }, [])
 
   useEffect(() => {
     if (isNew) return
     const fetchPost = async () => {
       try {
-        const response = await fetch(`/api/blog/posts/${slug}`)
-        if (response.ok) {
-          const data = await response.json()
-          setPost(data)
-          setTagsInput(data.tags?.join(', ') || '')
-        }
-      } catch (error) {
-        console.error('Failed to load post:', error)
+        // Appel authentifié : les brouillons ne sont visibles que de l'admin.
+        const data = await adminJson<BlogPost>(`/api/blog/posts/${slug}`)
+        setPost(data)
+        setTagsInput(data.tags?.join(', ') || '')
+      } catch (err) {
+        const message = errorMessage(err)
+        if (message) toast.error(`Article introuvable : ${message}`)
       } finally {
         setLoading(false)
       }
     }
     fetchPost()
-  }, [slug, isNew])
+  }, [slug, isNew, toast])
 
-  const updateField = (field: string, value: any) => {
+  const updateField = <K extends keyof BlogPost>(field: K, value: BlogPost[K]) => {
     setSaved(false)
     setPost((prev) => ({ ...prev, [field]: value }))
   }
@@ -111,36 +114,26 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
 
     setSaving(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const slug = post.slug || generateSlug(post.title)
+      const newSlug = post.slug || generateSlug(post.title)
       const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean)
-      const body = { ...post, slug, tags }
+      const body = { ...post, slug: newSlug, tags }
 
+      // Mise à jour : on vise l'adresse ACTUELLE de l'article (slug de l'URL),
+      // même si le slug vient d'être modifié dans le formulaire.
       const url = isNew ? '/api/blog/posts' : `/api/blog/posts/${slug}`
-      const method = isNew ? 'POST' : 'PUT'
+      const saved = await adminJson<BlogPost>(url, { method: isNew ? 'POST' : 'PUT', body: JSON.stringify(body) })
+      setSaved(true)
+      toast.success(saved.published ? 'Article enregistré et publié' : 'Brouillon enregistré')
+      setTimeout(() => setSaved(false), 3000)
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      })
-
-      if (response.ok) {
-        const saved = await response.json()
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-
-        if (isNew) {
-          router.push(`/admin/blog/${saved.slug}`)
-        } else {
-          setPost(saved)
-        }
+      if (isNew || saved.slug !== slug) {
+        router.replace(`/admin/blog/${saved.slug}`)
       } else {
-        const err = await response.json()
-        toast.error(err.error || 'Erreur')
+        setPost(saved)
       }
-    } catch {
-      toast.error('Erreur lors de la sauvegarde')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -149,14 +142,12 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
   const handleDelete = async () => {
     if (!(await confirm({ title: 'Supprimer l’article', message: 'Cette action est définitive et irréversible.', danger: true, confirmLabel: 'Supprimer' }))) return
     try {
-      const token = localStorage.getItem('authToken')
-      await fetch(`/api/blog/posts/${post.slug}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await adminJson(`/api/blog/posts/${slug}`, { method: 'DELETE' })
+      toast.success('Article supprimé')
       router.push('/admin/blog')
-    } catch {
-      toast.error('Erreur')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
@@ -285,14 +276,33 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Texte complet
               </Label>
-              <RichEditor
-                content={post.content}
-                onChange={(html) => updateField('content', html)}
-                placeholder="Commencez à rédiger votre article..."
-              />
-              <p className="text-[11px] text-muted-foreground/60">
-                Utilisez la barre d&apos;outils pour mettre en forme : titres, gras, listes, liens, images...
-              </p>
+              {post.source === 'phare' ? (
+                <>
+                  {/* L'éditeur visuel supprimerait tableaux, sommaire et ancres : on édite le HTML brut. */}
+                  <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                    Article publié par PHARE. Corrigez-le de préférence dans PHARE : une nouvelle publication
+                    remplacera ce texte. Ici, seul le code HTML est modifiable, pour préserver tableaux et sommaire.
+                  </p>
+                  <textarea
+                    value={post.content}
+                    onChange={(e) => updateField('content', e.target.value)}
+                    rows={18}
+                    spellCheck={false}
+                    className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-xs leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  />
+                </>
+              ) : (
+                <>
+                  <RichEditor
+                    content={post.content}
+                    onChange={(html) => updateField('content', html)}
+                    placeholder="Commencez à rédiger votre article..."
+                  />
+                  <p className="text-[11px] text-muted-foreground/60">
+                    Utilisez la barre d&apos;outils pour mettre en forme : titres, gras, listes, liens, images...
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -344,6 +354,21 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
                   placeholder="Nom de l'auteur"
                 />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="publishedAt" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Date de publication
+              </Label>
+              <Input
+                id="publishedAt"
+                type="date"
+                value={post.publishedAt ? post.publishedAt.slice(0, 10) : ''}
+                onChange={(e) => updateField('publishedAt', e.target.value ? new Date(`${e.target.value}T09:00:00`).toISOString() : undefined)}
+                className="max-w-48"
+              />
+              <p className="text-[11px] text-muted-foreground/60">
+                Vide : date du jour à la publication. Une date future programme l&apos;article (invisible jusqu&apos;à ce jour).
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -440,7 +465,7 @@ export default function BlogPostEditor({ params }: { params: Promise<{ slug: str
                 {post.metaTitle || post.title || 'Titre de l\'article'}
               </p>
               <p className="text-[#006621] text-xs truncate">
-                votresite.com/blog/{post.slug || 'url-de-larticle'}
+                {siteHost}{BLOG_BASE}/{post.slug || 'adresse-de-l-article'}
               </p>
               <p className="text-xs text-[#545454] line-clamp-2">
                 {post.metaDescription || post.excerpt || 'Description de l\'article...'}

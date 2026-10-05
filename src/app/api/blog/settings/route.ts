@@ -1,53 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { BlogSettings } from '@/models/Blog'
-import { verifyAuth } from '@/lib/auth'
+import { NextResponse } from 'next/server'
 
-const CACHE_HEADERS = {
-  'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=600',
-}
+import { isAdminRequest } from '@/lib/auth'
+import { revalidateBlog } from '@/lib/blog-admin'
+import { BLOG_SETTINGS_DEFAULTS } from '@/lib/blog-defaults'
+import { connectDB, isDbConfigured } from '@/lib/db'
+import { BlogSettings } from '@/models/Blog'
+
+const FIELDS = ['enabled', 'title', 'description', 'eyebrow', 'heroImage', 'categories'] as const
 
 export async function GET() {
+  if (!isDbConfigured()) return NextResponse.json(BLOG_SETTINGS_DEFAULTS)
   try {
     await connectDB()
     const settings = await BlogSettings.findOne().lean()
-    if (!settings) {
-      return NextResponse.json(
-        { enabled: true, title: 'Nos dernières actualités', eyebrow: 'Blog', description: 'Retrouvez nos conseils, nos projets récents et les tendances du secteur.' },
-        { headers: CACHE_HEADERS }
-      )
-    }
-    return NextResponse.json(settings, { headers: CACHE_HEADERS })
+    return NextResponse.json(settings ?? BLOG_SETTINGS_DEFAULTS, {
+      headers: { 'Cache-Control': 'public, max-age=0, s-maxage=10, stale-while-revalidate=20' },
+    })
   } catch (error) {
-    console.error('Blog settings error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[blog settings GET]', error)
+    return NextResponse.json({ error: 'Base de données injoignable' }, { status: 503 })
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: Request) {
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
   try {
-    const { authenticated, user } = await verifyAuth(request)
-    if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const body = (await request.json()) as Record<string, unknown>
+    const update: Record<string, unknown> = {}
+    for (const key of FIELDS) if (key in body) update[key] = body[key]
 
     await connectDB()
-    const body = await request.json()
-
-    let settings = await BlogSettings.findOne()
-    if (!settings) {
-      settings = await BlogSettings.create(body)
-    } else {
-      const fields = ['enabled', 'title', 'description', 'eyebrow', 'heroImage', 'categories']
-      for (const field of fields) {
-        if (body[field] !== undefined) (settings as any)[field] = body[field]
-      }
-      await settings.save()
-    }
-
+    const settings = await BlogSettings.findOneAndUpdate({}, update, { upsert: true, new: true, setDefaultsOnInsert: true })
+    revalidateBlog()
     return NextResponse.json(settings)
   } catch (error) {
-    console.error('Blog settings update error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[blog settings PUT]', error)
+    return NextResponse.json({ error: 'Enregistrement impossible' }, { status: 500 })
   }
 }

@@ -2,7 +2,6 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import LinkExtension from '@tiptap/extension-link'
 import ImageExtension from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import {
@@ -69,14 +68,15 @@ export function RichEditor({ content, onChange, placeholder }: RichEditorProps) 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
+      // StarterKit 3 inclut déjà l'extension Lien : on la règle ici (pas de doublon).
       StarterKit.configure({
         heading: { levels: [2, 3] },
-      }),
-      LinkExtension.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline underline-offset-4 hover:text-primary/80',
-          rel: 'noopener noreferrer',
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: 'text-primary underline underline-offset-4 hover:text-primary/80',
+            rel: 'noopener noreferrer',
+          },
         },
       }),
       ImageExtension.configure({

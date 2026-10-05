@@ -4,7 +4,7 @@ import { ArrowRight, Lock, Mail, Shield } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,15 +15,14 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+  // Page rendue uniquement dans le navigateur (le layout admin attend) : lecture directe de l'URL.
+  const [notice] = useState(() =>
+    new URLSearchParams(window.location.search).get('expired') === '1'
+      ? 'Votre session a expiré. Reconnectez-vous pour continuer.'
+      : ''
+  )
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('expired') === '1') {
-      setNotice('Votre session a expiré. Reconnectez-vous pour continuer.')
-    }
-  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

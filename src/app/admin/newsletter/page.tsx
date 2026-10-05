@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft, Mail, Trash2, Download, Search, Users, CalendarDays, Inbox, Send, Megaphone,
 } from 'lucide-react'
@@ -14,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/admin/toast'
 import { useConfirm } from '@/components/admin/confirm-dialog'
 import { AdminLoading } from '@/components/admin/admin-ui'
+import { adminJson, errorMessage } from '@/lib/admin-session'
 import { cn } from '@/lib/utils'
 
 interface Subscriber {
@@ -27,7 +26,6 @@ interface Subscriber {
 type Tab = 'subscribers' | 'campaign'
 
 export default function AdminNewsletterPage() {
-  const router = useRouter()
   const { toast } = useToast()
   const confirm = useConfirm()
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
@@ -41,28 +39,19 @@ export default function AdminNewsletterPage() {
   const [sending, setSending] = useState(false)
 
   useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
-      router.push('/admin/login')
-    }
-  }, [router])
-
-  useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('authToken')
-        const res = await fetch('/api/newsletter', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const data = res.ok ? await res.json() : []
+        const data = await adminJson<Subscriber[]>('/api/newsletter')
         setSubscribers(Array.isArray(data) ? data : [])
-      } catch (error) {
-        console.error('Failed to load subscribers:', error)
+      } catch (err) {
+        const message = errorMessage(err)
+        if (message) toast.error(`Chargement des abonnés impossible : ${message}`)
       } finally {
         setLoading(false)
       }
     }
     fetchData()
-  }, [])
+  }, [toast])
 
   const handleDelete = async (sub: Subscriber) => {
     if (
@@ -75,19 +64,12 @@ export default function AdminNewsletterPage() {
     )
       return
     try {
-      const token = localStorage.getItem('authToken')
-      const res = await fetch(`/api/newsletter/${sub._id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        setSubscribers((list) => list.filter((s) => s._id !== sub._id))
-        toast.success('Abonné supprimé')
-      } else {
-        toast.error('Erreur lors de la suppression')
-      }
-    } catch {
-      toast.error('Erreur lors de la suppression')
+      await adminJson(`/api/newsletter/${sub._id}`, { method: 'DELETE' })
+      setSubscribers((list) => list.filter((s) => s._id !== sub._id))
+      toast.success('Abonné supprimé')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
@@ -141,23 +123,17 @@ export default function AdminNewsletterPage() {
 
     setSending(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const res = await fetch('/api/newsletter/campaign', {
+      const data = await adminJson<{ sent: number; total: number; failed: number }>('/api/newsletter/campaign', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ subject, message }),
       })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok) {
-        toast.success(`Campagne envoyée : ${data.sent}/${data.total} e-mail${data.total > 1 ? 's' : ''}`)
-        if (data.failed > 0) toast.error(`${data.failed} envoi(s) en échec`)
-        setSubject('')
-        setMessage('')
-      } else {
-        toast.error(data.error || "L'envoi a échoué.")
-      }
-    } catch {
-      toast.error('Erreur réseau, veuillez réessayer.')
+      toast.success(`Campagne envoyée : ${data.sent}/${data.total} e-mail${data.total > 1 ? 's' : ''}`)
+      if (data.failed > 0) toast.error(`${data.failed} envoi(s) en échec`)
+      setSubject('')
+      setMessage('')
+    } catch (err) {
+      const msg = errorMessage(err)
+      if (msg) toast.error(msg)
     } finally {
       setSending(false)
     }
@@ -287,12 +263,9 @@ export default function AdminNewsletterPage() {
                 </div>
                 <ul className="divide-y divide-border/60">
                   {filtered.map((sub) => (
-                    <motion.li
-                      key={sub._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="group grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-4"
-                    >
+                    <li
+                      key={sub._id} 
+                      className="animate-fade-in group grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-4">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                           <Mail className="size-4" />
@@ -321,7 +294,7 @@ export default function AdminNewsletterPage() {
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -344,12 +317,8 @@ export default function AdminNewsletterPage() {
 
         {/* ======= TAB: CAMPAGNE ======= */}
         {tab === 'campaign' && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="max-w-2xl space-y-5"
-          >
+          <div 
+            className="animate-fade-in max-w-2xl space-y-5">
             <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
               <Send className="size-4 shrink-0 text-primary" />
               <span className="text-foreground">
@@ -393,7 +362,7 @@ export default function AdminNewsletterPage() {
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

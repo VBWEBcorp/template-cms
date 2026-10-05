@@ -8,7 +8,19 @@ import { sendBlogNotification } from '@/lib/email'
  * @param post           document Mongoose de l'article (après sauvegarde)
  * @param wasPublished   l'article était-il déjà publié AVANT cette opération ?
  */
-export async function notifyNewPost(post: any, wasPublished: boolean): Promise<void> {
+type PostToNotify = {
+  title: string
+  excerpt?: string
+  slug: string
+  coverImage?: string
+  published?: boolean
+  publishedAt?: Date
+  notifyOnPublish?: boolean
+  newsletterSentAt?: Date
+  save: () => Promise<unknown>
+}
+
+export async function notifyNewPost(post: PostToNotify | null, wasPublished: boolean): Promise<void> {
   try {
     if (!post) return
     if (wasPublished) return                 // déjà publié → pas une nouvelle mise en ligne
@@ -21,7 +33,7 @@ export async function notifyNewPost(post: any, wasPublished: boolean): Promise<v
     if (publishedAtMs > Date.now()) return
 
     const subs = await Subscriber.find({ status: { $ne: 'unsubscribed' } }).select('email').lean()
-    const emails = subs.map((s: any) => s.email)
+    const emails = (subs as Array<{ email: string }>).map((s) => s.email)
     if (emails.length === 0) return
 
     const result = await sendBlogNotification(emails, {

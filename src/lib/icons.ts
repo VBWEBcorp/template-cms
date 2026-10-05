@@ -70,3 +70,6 @@ export function getIcon(name?: string): LucideIcon {
 }
 
 export type IconName = keyof typeof iconMap
+
+/** Noms proposés dans l'admin (liste fermée : une icône inconnue s'afficherait en point d'interrogation). */
+export const ICON_NAMES = Object.keys(iconMap).sort()

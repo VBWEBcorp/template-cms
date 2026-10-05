@@ -1,83 +1,45 @@
 'use client'
 
-import { PageEditor } from '@/components/admin/page-editor'
+import { MessageSquareQuote, Type } from 'lucide-react'
+
 import { FieldEditor, SectionEditor } from '@/components/admin/field-editor'
-import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Type, MessageSquareQuote } from 'lucide-react'
+import { ListEditor } from '@/components/admin/list-editors'
+import { PageEditor } from '@/components/admin/page-editor'
+import type { Testimonial } from '@/content/pages'
 
-const defaults = {
-  eyebrow: 'Témoignages',
-  title: 'Ils nous font confiance',
-  description: 'Des entreprises de tous horizons qui ont gagné en visibilité et en crédibilité.',
-  testimonials: [
-    { name: 'Marie D.', company: 'Boulangerie Le Fournil', text: 'Depuis le nouveau site, je reçois 3 fois plus d\'appels. Les clients nous trouvent enfin sur Google.', stars: 5 },
-    { name: 'Thomas L.', company: 'Cabinet Conseil TLR', text: 'Un travail soigné, un site clair et professionnel. Mes prospects comprennent immédiatement ce que je propose.', stars: 5 },
-    { name: 'Camille B.', company: 'Atelier Camille', text: 'Le site reflète parfaitement l\'univers de ma marque. J\'ai gagné en crédibilité auprès de mes clients.', stars: 5 },
-    { name: 'Laurent M.', company: 'LM Rénovation', text: 'En trois mois, mon chiffre a augmenté de 40 %. Le site et le SEO font vraiment la différence.', stars: 5 },
-    { name: 'Nadia K.', company: 'Agence NovaTour', text: 'Un accompagnement au top, des délais respectés et un résultat qui dépasse mes attentes.', stars: 5 },
-  ],
-}
-
+/** Avis clients affichés sur l'accueil : champs identiques à testimonialsDefaults. */
 export default function AdminTestimonialsPage() {
   return (
-    <PageEditor pageId="testimonials" title="Témoignages" defaultContent={defaults}>
+    <PageEditor pageId="testimonials" title="Témoignages">
       {(content, update) => (
         <>
-          <SectionEditor title="En-tête" icon={Type} description="Titre de la section témoignages">
+          <SectionEditor title="En-tête" icon={Type} description="Titre de la section des avis">
             <FieldEditor label="Accroche" value={content.eyebrow} onChange={(v) => update('eyebrow', v)} />
             <FieldEditor label="Titre" value={content.title} onChange={(v) => update('title', v)} />
-            <FieldEditor label="Description" value={content.description} onChange={(v) => update('description', v)} type="textarea" />
+            <FieldEditor label="Description" type="textarea" value={content.description} onChange={(v) => update('description', v)} />
           </SectionEditor>
 
-          <SectionEditor title="Liste des témoignages" cols={1} icon={MessageSquareQuote} description="Les avis clients affichés">
-            {content.testimonials?.map((t: any, i: number) => (
-              <div key={i} className="p-4 border border-border/30 rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">Témoignage {i + 1}</span>
-                  <button
-                    onClick={() => {
-                      const items = content.testimonials.filter((_: any, j: number) => j !== i)
-                      update('testimonials', items)
-                    }}
-                    className="text-destructive hover:text-destructive/80"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <FieldEditor label="Nom" value={t.name} onChange={(v) => {
-                    const items = [...content.testimonials]
-                    items[i] = { ...items[i], name: v }
-                    update('testimonials', items)
-                  }} />
-                  <FieldEditor label="Entreprise" value={t.company} onChange={(v) => {
-                    const items = [...content.testimonials]
-                    items[i] = { ...items[i], company: v }
-                    update('testimonials', items)
-                  }} />
-                </div>
-                <FieldEditor label="Témoignage" value={t.text} onChange={(v) => {
-                  const items = [...content.testimonials]
-                  items[i] = { ...items[i], text: v }
-                  update('testimonials', items)
-                }} type="textarea" />
-                <FieldEditor label="Étoiles (1-5)" value={String(t.stars)} onChange={(v) => {
-                  const items = [...content.testimonials]
-                  items[i] = { ...items[i], stars: Math.min(5, Math.max(1, parseInt(v) || 5)) }
-                  update('testimonials', items)
-                }} />
-              </div>
-            ))}
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => {
-                update('testimonials', [...(content.testimonials || []), { name: '', company: '', text: '', stars: 5 }])
-              }}
-            >
-              <Plus className="size-4" />
-              Ajouter un témoignage
-            </Button>
+          <SectionEditor title="Avis" icon={MessageSquareQuote} description="Recopiez de vrais avis clients (fiche Google par exemple)" cols={1}>
+            <ListEditor<Testimonial>
+              items={content.testimonials}
+              onChange={(items) => update('testimonials', items)}
+              itemLabel="Avis"
+              blank={{ name: 'Prénom N.', company: 'Entreprise', text: 'Texte de l’avis.', stars: 5 }}
+              renderItem={(item, set) => (
+                <>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <FieldEditor label="Nom" value={item.name} onChange={(v) => set({ name: v })} />
+                    <FieldEditor label="Entreprise" value={item.company} onChange={(v) => set({ company: v })} />
+                    <FieldEditor
+                      label="Étoiles (1 à 5)"
+                      value={String(item.stars)}
+                      onChange={(v) => set({ stars: Math.min(5, Math.max(1, parseInt(v, 10) || 5)) })}
+                    />
+                  </div>
+                  <FieldEditor label="Avis" type="textarea" value={item.text} onChange={(v) => set({ text: v })} />
+                </>
+              )}
+            />
           </SectionEditor>
         </>
       )}

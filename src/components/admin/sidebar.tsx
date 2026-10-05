@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import {
   LayoutDashboard,
   Images,
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from '@/components/admin/sidebar-context'
+import { endSession } from '@/lib/admin-session'
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -48,7 +49,7 @@ const moduleItems = [
 function NavLink({
   href, label, icon: Icon, pathname, collapsed, onClick,
 }: {
-  href: string; label: string; icon: any; pathname: string; collapsed: boolean; onClick?: () => void
+  href: string; label: string; icon: React.ComponentType<{ className?: string }>; pathname: string; collapsed: boolean; onClick?: () => void
 }) {
   const isActive = pathname === href
   return (
@@ -84,18 +85,16 @@ export function MobileMenuButton() {
 export function AdminSidebar() {
   const { collapsed, mobileOpen, isMobile, toggle, setMobileOpen } = useSidebar()
   const pathname = usePathname()
-  const router = useRouter()
   const pagesSectionActive = pageEditItems.some((i) => pathname === i.href)
   const [pagesOpen, setPagesOpen] = useState(pagesSectionActive)
-  useEffect(() => {
+  // Ajustement pendant le rendu (recommandé par React) : on rouvre le groupe en y arrivant.
+  const [wasActive, setWasActive] = useState(pagesSectionActive)
+  if (pagesSectionActive !== wasActive) {
+    setWasActive(pagesSectionActive)
     if (pagesSectionActive) setPagesOpen(true)
-  }, [pagesSectionActive])
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('authUser')
-    router.push('/admin/login')
   }
+
+  const handleLogout = () => endSession('logout')
 
   const closeMobile = () => {
     if (isMobile) setMobileOpen(false)

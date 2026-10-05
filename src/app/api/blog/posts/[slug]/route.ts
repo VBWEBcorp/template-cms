@@ -1,111 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { BlogPost } from '@/models/Blog'
-import { verifyAuth } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+
+import { isAdminRequest } from '@/lib/auth'
+import { pickEditable, revalidateBlog } from '@/lib/blog-admin'
 import { visiblePostFilter } from '@/lib/blog-filters'
-import { notifyNewPost } from '@/lib/notify-subscribers'
+import { connectDB } from '@/lib/db'
 import { submitIndexNow } from '@/lib/indexnow'
+import { notifyNewPost } from '@/lib/notify-subscribers'
+import { BlogPost } from '@/models/Blog'
 
 type Params = Promise<{ slug: string }>
 
-// GET single post by slug
-// Admin sees own drafts + visible posts. Posts with future publishedAt are
-// hidden everywhere — even admin gets a 404 here, so they cannot be edited
-// or deleted via the CMS (only via direct DB access).
-export async function GET(request: NextRequest, { params }: { params: Params }) {
+/** Un article. Public : seulement s'il est en ligne. Admin : quel que soit son état. */
+export async function GET(request: Request, { params }: { params: Params }) {
+  const { slug } = await params
   try {
-    const { slug } = await params
+    const admin = await isAdminRequest(request)
     await connectDB()
-
-    const { authenticated, user } = await verifyAuth(request)
-    const isAdmin = authenticated && user?.role === 'admin'
-    const filter = isAdmin
-      ? { slug, $or: [visiblePostFilter(), { published: false }] }
-      : { slug, ...visiblePostFilter() }
-
-    const post = await BlogPost.findOne(filter)
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    }
-
-    return NextResponse.json(post)
+    const post = await BlogPost.findOne(admin ? { slug } : { slug, ...visiblePostFilter() }).lean()
+    if (!post) return NextResponse.json({ error: 'Article introuvable' }, { status: 404 })
+    return NextResponse.json(post, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
-    console.error('Blog post error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[blog post GET]', error)
+    return NextResponse.json({ error: 'Base de données injoignable' }, { status: 503 })
   }
 }
 
-// PUT update post (admin only)
-export async function PUT(request: NextRequest, { params }: { params: Params }) {
-  try {
-    const { authenticated, user } = await verifyAuth(request)
-    if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+/** Mise à jour (admin). Le slug de l'URL est l'adresse actuelle ; le corps peut en proposer une nouvelle. */
+export async function PUT(request: Request, { params }: { params: Params }) {
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
+  const { slug } = await params
 
-    const { slug } = await params
+  try {
+    const body = pickEditable((await request.json()) as Record<string, unknown>)
     await connectDB()
 
-    const body = await request.json()
+    const before = await BlogPost.findOne({ slug }).select('published publishedAt').lean<{
+      published?: boolean
+      publishedAt?: Date
+    } | null>()
+    if (!before) return NextResponse.json({ error: 'Article introuvable' }, { status: 404 })
 
-    if (body.published && !body.publishedAt) {
-      body.publishedAt = new Date()
+    if (typeof body.slug === 'string' && body.slug && body.slug !== slug && (await BlogPost.exists({ slug: body.slug }))) {
+      return NextResponse.json({ error: `L'adresse « ${body.slug} » est déjà prise par un autre article` }, { status: 409 })
     }
+    if (body.published && !body.publishedAt) body.publishedAt = before.publishedAt ?? new Date()
 
-    const editableFilter = {
-      slug,
-      $or: [visiblePostFilter(), { published: false }],
-    }
+    const post = await BlogPost.findOneAndUpdate({ slug }, body, { new: true, runValidators: true })
+    if (!post) return NextResponse.json({ error: 'Article introuvable' }, { status: 404 })
 
-    // État avant mise à jour, pour ne notifier que sur le passage en publié
-    const before = await BlogPost.findOne(editableFilter).select('published').lean() as { published?: boolean } | null
-
-    const post = await BlogPost.findOneAndUpdate(editableFilter, body, {
-      new: true,
-      runValidators: true,
-    })
-
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    }
-
-    // Annonce aux abonnés si l'article vient de passer en publié (best-effort)
-    await notifyNewPost(post, before?.published === true)
-
-    // Soumission instantanée aux moteurs si publié (best-effort)
-    if (post.published) {
-      await submitIndexNow([`/blog/${post.slug}`, '/blog'])
-    }
+    await notifyNewPost(post, before.published === true)
+    revalidateBlog()
+    if (post.published) await submitIndexNow([`/blog/${post.slug}`, '/blog'])
 
     return NextResponse.json(post)
   } catch (error) {
-    console.error('Blog post update error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[blog post PUT]', error)
+    return NextResponse.json({ error: 'Enregistrement impossible' }, { status: 500 })
   }
 }
 
-// DELETE post (admin only)
-export async function DELETE(request: NextRequest, { params }: { params: Params }) {
+/** Suppression (admin) : l'article répond 404 et sort du sitemap. */
+export async function DELETE(request: Request, { params }: { params: Params }) {
+  if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
+  const { slug } = await params
   try {
-    const { authenticated, user } = await verifyAuth(request)
-    if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { slug } = await params
     await connectDB()
-
-    const post = await BlogPost.findOneAndDelete({
-      slug,
-      $or: [visiblePostFilter(), { published: false }],
-    })
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ message: 'Post deleted' })
+    const post = await BlogPost.findOneAndDelete({ slug })
+    if (!post) return NextResponse.json({ error: 'Article introuvable' }, { status: 404 })
+    revalidateBlog()
+    return NextResponse.json({ deleted: true })
   } catch (error) {
-    console.error('Blog post delete error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[blog post DELETE]', error)
+    return NextResponse.json({ error: 'Suppression impossible' }, { status: 500 })
   }
 }

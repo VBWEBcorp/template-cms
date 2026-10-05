@@ -17,7 +17,7 @@ const SubscriberSchema = new Schema<ISubscriber>(
       lowercase: true,
       trim: true,
     },
-    // D'où vient l'inscription (footer, popup, page blog…) — utile pour les stats
+    // D'où vient l'inscription (footer, popup, page blog...), utile pour les statistiques
     source: { type: String, default: 'site' },
     status: { type: String, enum: ['active', 'unsubscribed'], default: 'active' },
   },

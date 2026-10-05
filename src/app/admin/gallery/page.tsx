@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import { Trash2, Plus, Check, Save, ArrowLeft, Eye, EyeOff, ImageOff, Images } from 'lucide-react'
 import Link from 'next/link'
 
@@ -13,6 +11,7 @@ import { ImageField } from '@/components/admin/field-editor'
 import { useToast } from '@/components/admin/toast'
 import { useConfirm } from '@/components/admin/confirm-dialog'
 import { AdminLoading } from '@/components/admin/admin-ui'
+import { adminJson, errorMessage } from '@/lib/admin-session'
 import { cn } from '@/lib/utils'
 
 interface GalleryImage {
@@ -33,67 +32,47 @@ interface GallerySettings {
 }
 
 export default function AdminGalleryPage() {
-  const router = useRouter()
   const { toast } = useToast()
   const confirm = useConfirm()
-  const [settings, setSettings] = useState<GallerySettings>({ enabled: false, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.', heroImage: '' })
+  const [settings, setSettings] = useState<GallerySettings>({ enabled: true, title: 'Nos réalisations', eyebrow: 'Galerie', description: 'Découvrez nos projets récents et laissez-vous inspirer par notre savoir-faire.', heroImage: '' })
   const [images, setImages] = useState<GalleryImage[]>([])
   const [newImage, setNewImage] = useState({ title: '', description: '', imageUrl: '', category: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savedSettings, setSavedSettings] = useState(false)
 
-  // Vérifier auth
-  useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
-      router.push('/admin/login')
-    }
-  }, [router])
-
   // Charger les données
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [settingsRes, imagesRes] = await Promise.all([
-          fetch('/api/gallery/settings'),
-          fetch('/api/gallery/images'),
+        // Appels authentifiés : l'admin voit aussi les images masquées.
+        const [settingsData, imagesData] = await Promise.all([
+          adminJson<GallerySettings>('/api/gallery/settings'),
+          adminJson<GalleryImage[]>('/api/gallery/images'),
         ])
-
-        const settingsData = await settingsRes.json()
-        const imagesData = await imagesRes.json()
-
         setSettings(settingsData)
-        setImages(imagesData)
-      } catch (error) {
-        console.error('Failed to load gallery:', error)
+        setImages(Array.isArray(imagesData) ? imagesData : [])
+      } catch (err) {
+        const message = errorMessage(err)
+        if (message) toast.error(`Chargement de la galerie impossible : ${message}`)
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [toast])
 
   const handleSaveSettings = async () => {
     setSaving(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch('/api/gallery/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(settings),
-      })
-
-      if (response.ok) {
-        setSavedSettings(true)
-        setTimeout(() => setSavedSettings(false), 3000)
-        toast.success('Paramètres sauvegardés')
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur inconnue')
+      await adminJson('/api/gallery/settings', { method: 'PUT', body: JSON.stringify(settings) })
+      setSavedSettings(true)
+      setTimeout(() => setSavedSettings(false), 3000)
+      toast.success('Réglages enregistrés')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -107,24 +86,13 @@ export default function AdminGalleryPage() {
 
     setSaving(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch('/api/gallery/images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(newImage),
-      })
-
-      if (response.ok) {
-        const image = await response.json()
-        setImages([...images, image])
-        setNewImage({ title: '', description: '', imageUrl: '', category: '' })
-        toast.success('Image ajoutée')
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur inconnue')
+      const image = await adminJson<GalleryImage>('/api/gallery/images', { method: 'POST', body: JSON.stringify(newImage) })
+      setImages([...images, image])
+      setNewImage({ title: '', description: '', imageUrl: '', category: '' })
+      toast.success('Image ajoutée')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -134,43 +102,24 @@ export default function AdminGalleryPage() {
     if (!(await confirm({ title: 'Supprimer l’image', message: 'Cette action est irréversible.', danger: true, confirmLabel: 'Supprimer' }))) return
 
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch(`/api/gallery/images/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
-
-      if (response.ok) {
-        setImages(images.filter(img => img._id !== id))
-        toast.success('Image supprimée')
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur inconnue')
+      await adminJson(`/api/gallery/images/${id}`, { method: 'DELETE' })
+      setImages(images.filter((img) => img._id !== id))
+      toast.success('Image supprimée')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
   const handleToggleImage = async (id: string, active: boolean) => {
     try {
-      const token = localStorage.getItem('authToken')
-      const image = images.find(img => img._id === id)
+      const image = images.find((img) => img._id === id)
       if (!image) return
-
-      const response = await fetch(`/api/gallery/images/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...image, active: !active }),
-      })
-
-      if (response.ok) {
-        setImages(images.map(img =>
-          img._id === id ? { ...img, active: !active } : img
-        ))
-      }
-    } catch (error) {
-      toast.error('Une erreur est survenue')
+      await adminJson(`/api/gallery/images/${id}`, { method: 'PUT', body: JSON.stringify({ ...image, active: !active }) })
+      setImages(images.map((img) => (img._id === id ? { ...img, active: !active } : img)))
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
@@ -216,12 +165,13 @@ export default function AdminGalleryPage() {
                   onClick={() => {
                     const newSettings = { ...settings, enabled: !settings.enabled }
                     setSettings(newSettings)
-                    const token = localStorage.getItem('authToken')
-                    fetch('/api/gallery/settings', {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify(newSettings),
-                    })
+                    adminJson('/api/gallery/settings', { method: 'PUT', body: JSON.stringify(newSettings) })
+                      .then(() => toast.success(newSettings.enabled ? 'Galerie affichée sur le site' : 'Galerie masquée'))
+                      .catch((err) => {
+                        setSettings(settings)
+                        const message = errorMessage(err)
+                        if (message) toast.error(message)
+                      })
                   }}
                 >
                   <div className={cn('absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow transition-transform', settings.enabled && 'translate-x-4')} />
@@ -347,15 +297,12 @@ export default function AdminGalleryPage() {
           {images.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {images.map((image) => (
-                <motion.div
+                <div
                   key={image._id}
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
                   className={cn(
-                    'group relative aspect-[4/3] overflow-hidden rounded-xl border border-border/60 bg-muted shadow-sm transition-all hover:shadow-md',
+                    'animate-fade-in group relative aspect-[4/3] overflow-hidden rounded-xl border border-border/60 bg-muted shadow-sm transition-all hover:shadow-md',
                     !image.active && 'opacity-70'
-                  )}
-                >
+                  )}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image.imageUrl}
@@ -406,7 +353,7 @@ export default function AdminGalleryPage() {
                       <p className="truncate text-[11px] text-white/70">{image.category}</p>
                     )}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (

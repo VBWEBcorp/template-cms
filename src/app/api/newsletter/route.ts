@@ -6,7 +6,7 @@ import { sendNewsletterWelcome } from '@/lib/email'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// POST — inscription à la newsletter (public)
+// POST : inscription à la newsletter (public)
 export async function POST(request: NextRequest) {
   try {
     const { email, source } = await request.json()
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       source: typeof source === 'string' && source ? source : 'site',
     })
 
-    // Mail de bienvenue — best-effort : un échec d'envoi (ou l'absence de
+    // Mail de bienvenue, sans garantie : un échec d'envoi (ou l'absence de
     // configuration Resend) ne doit jamais faire échouer l'inscription.
     try {
       await sendNewsletterWelcome(clean)
@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET — liste des abonnés (admin uniquement)
+// GET : liste des abonnés (admin uniquement)
 export async function GET(request: NextRequest) {
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     await connectDB()
@@ -65,6 +65,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(subscribers, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('Newsletter list error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

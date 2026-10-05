@@ -48,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
       // Jeton éventuellement présent mais mort : on le retire pour repartir propre.
       clearSession()
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- la session ne se lit que dans le navigateur
       setReady(true)
       return
     }

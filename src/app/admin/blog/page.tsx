@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import {
   Plus, Trash2, Check, ArrowLeft, Pencil, Eye, EyeOff,
   Calendar, Settings, FileText, X, Save,
@@ -12,11 +10,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ImageField } from '@/components/admin/field-editor'
 import { useToast } from '@/components/admin/toast'
 import { useConfirm } from '@/components/admin/confirm-dialog'
 import { AdminLoading } from '@/components/admin/admin-ui'
+import { adminJson, errorMessage } from '@/lib/admin-session'
 import { cn } from '@/lib/utils'
 
 interface BlogPost {
@@ -43,7 +41,6 @@ interface BlogSettings {
 type Tab = 'articles' | 'settings'
 
 export default function AdminBlogPage() {
-  const router = useRouter()
   const { toast } = useToast()
   const confirm = useConfirm()
   const [tab, setTab] = useState<Tab>('articles')
@@ -57,48 +54,34 @@ export default function AdminBlogPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all')
 
   useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
-      router.push('/admin/login')
-    }
-  }, [router])
-
-  useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('authToken')
-        const [settingsRes, postsRes] = await Promise.all([
-          fetch('/api/blog/settings'),
-          fetch('/api/blog/posts', {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+        const [settingsData, postsData] = await Promise.all([
+          adminJson<BlogSettings>('/api/blog/settings'),
+          adminJson<BlogPost[]>('/api/blog/posts'),
         ])
-        const settingsData = await settingsRes.json()
         setSettings({ ...settingsData, categories: settingsData.categories || [] })
-        setPosts(await postsRes.json())
-      } catch (error) {
-        console.error('Failed to load blog:', error)
+        setPosts(Array.isArray(postsData) ? postsData : [])
+      } catch (err) {
+        const message = errorMessage(err)
+        if (message) toast.error(`Chargement du blog impossible : ${message}`)
       } finally {
         setLoading(false)
       }
     }
     fetchData()
-  }, [])
+  }, [toast])
 
   const handleSaveSettings = async () => {
     setSaving(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch('/api/blog/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(settings),
-      })
-      if (response.ok) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-      }
-    } catch {
-      toast.error('Erreur lors de la sauvegarde')
+      await adminJson('/api/blog/settings', { method: 'PUT', body: JSON.stringify(settings) })
+      setSaved(true)
+      toast.success('Réglages du blog enregistrés')
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -121,30 +104,25 @@ export default function AdminBlogPage() {
   const handleDelete = async (slug: string) => {
     if (!(await confirm({ title: 'Supprimer l’article', message: 'Cette action est irréversible.', danger: true, confirmLabel: 'Supprimer' }))) return
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch(`/api/blog/posts/${slug}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (response.ok) setPosts(posts.filter((p) => p.slug !== slug))
-    } catch {
-      toast.error('Erreur lors de la suppression')
+      await adminJson(`/api/blog/posts/${slug}`, { method: 'DELETE' })
+      setPosts(posts.filter((p) => p.slug !== slug))
+      toast.success('Article supprimé')
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
   const handleTogglePublish = async (post: BlogPost) => {
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch(`/api/blog/posts/${post.slug}`, {
+      await adminJson(`/api/blog/posts/${post.slug}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...post, published: !post.published }),
+        body: JSON.stringify({ published: !post.published }),
       })
-      if (response.ok) {
-        setPosts(posts.map((p) => p.slug === post.slug ? { ...p, published: !p.published } : p))
-      }
-    } catch {
-      toast.error('Erreur')
+      setPosts(posts.map((p) => (p.slug === post.slug ? { ...p, published: !p.published } : p)))
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     }
   }
 
@@ -189,12 +167,13 @@ export default function AdminBlogPage() {
                 const newSettings = { ...settings, enabled: !settings.enabled }
                 setSettings(newSettings)
                 // Auto-save toggle
-                const token = localStorage.getItem('authToken')
-                fetch('/api/blog/settings', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                  body: JSON.stringify(newSettings),
-                })
+                adminJson('/api/blog/settings', { method: 'PUT', body: JSON.stringify(newSettings) })
+                  .then(() => toast.success(newSettings.enabled ? 'Blog affiché sur le site' : 'Blog masqué'))
+                  .catch((err) => {
+                    setSettings(settings)
+                    const message = errorMessage(err)
+                    if (message) toast.error(message)
+                  })
               }}
             >
               <div
@@ -281,12 +260,8 @@ export default function AdminBlogPage() {
 
       {/* ======= TAB: ARTICLES ======= */}
       {tab === 'articles' && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="space-y-4"
-        >
+        <div 
+          className="animate-fade-in space-y-4">
           {/* Filters + New */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Status filter */}
@@ -339,15 +314,13 @@ export default function AdminBlogPage() {
           {filteredPosts.length > 0 ? (
             <div className="space-y-2">
               {filteredPosts.map((post) => (
-                <motion.div
-                  key={post._id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card hover:border-border transition group"
-                >
+                <div
+                  key={post._id} 
+                  className="animate-fade-in flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card hover:border-border transition group">
                   {/* Cover thumbnail */}
                   {post.coverImage ? (
                     <div className="hidden sm:block w-16 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- vignette de l'admin, adresse libre */}
                       <img src={post.coverImage} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
@@ -414,7 +387,7 @@ export default function AdminBlogPage() {
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
@@ -435,17 +408,13 @@ export default function AdminBlogPage() {
               )}
             </div>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* ======= TAB: SETTINGS ======= */}
       {tab === 'settings' && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="space-y-5 max-w-2xl"
-        >
+        <div 
+          className="animate-fade-in space-y-5 max-w-2xl">
           {/* Page settings */}
           <div className="rounded-xl bg-card border border-border/40 overflow-hidden">
             <div className="px-5 py-3 border-b border-border/40 bg-muted/30">
@@ -572,7 +541,7 @@ export default function AdminBlogPage() {
               <><Save className="size-4" /> {saving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}</>
             )}
           </Button>
-        </motion.div>
+        </div>
       )}
       </div>
     </div>

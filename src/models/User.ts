@@ -41,17 +41,10 @@ const UserSchema = new Schema<IUser>(
   }
 )
 
-// Hash password before saving
-UserSchema.pre('save', async function (this: any, next: any) {
-  if (!this.isModified('password')) return next()
-
-  try {
-    const salt = await bcrypt.genSalt(10)
-    this.password = await bcrypt.hash(this.password, salt)
-    next()
-  } catch (error) {
-    next(error)
-  }
+// Mot de passe haché à l'enregistrement (middleware asynchrone de Mongoose 9).
+UserSchema.pre('save', async function () {
+  if (!this.isModified('password')) return
+  this.password = await bcrypt.hash(this.password, 10)
 })
 
 // Method to compare passwords

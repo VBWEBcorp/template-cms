@@ -28,7 +28,7 @@ function htmlPage(title: string, body: string, status = 200) {
   )
 }
 
-// GET — désinscription via lien signé présent dans les e-mails de campagne (public)
+// GET : désinscription via lien signé présent dans les e-mails de campagne (public)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

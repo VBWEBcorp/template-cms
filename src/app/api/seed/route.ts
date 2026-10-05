@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { GalleryImage, GallerySettings } from '@/models/Gallery'
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     await connectDB()
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       results.push('4 images galerie créées')
 
       // Update gallery settings
-      let gallerySettings = await GallerySettings.findOne()
+      const gallerySettings = await GallerySettings.findOne()
       if (!gallerySettings) {
         await GallerySettings.create({
           enabled: true,
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
           title: '5 tendances web design à suivre en 2026',
           slug: '5-tendances-web-design-2026',
           excerpt: 'Le web design évolue constamment. Découvrez les tendances incontournables de cette année pour créer des sites modernes, accessibles et performants.',
-          content: `<h2>1. Le design immersif en 3D</h2><p>Les expériences web en trois dimensions ne sont plus réservées aux grandes marques. Grâce aux avancées de WebGL et des bibliothèques comme Three.js, de plus en plus de sites intègrent des éléments 3D interactifs pour captiver leurs visiteurs.</p><h2>2. Le minimalisme fonctionnel</h2><p>Moins, c'est plus. En 2026, la tendance est aux interfaces épurées qui vont droit au but. Les espaces blancs sont utilisés de manière stratégique pour guider l'œil et mettre en valeur le contenu essentiel.</p><h2>3. Les micro-interactions</h2><p>Les petites animations au survol, au clic ou au scroll enrichissent l'expérience utilisateur sans alourdir la page. Elles apportent du feedback visuel et rendent la navigation plus intuitive et agréable.</p><h2>4. L'accessibilité comme standard</h2><p>L'accessibilité n'est plus une option. Les normes WCAG 2.2 sont désormais un prérequis, et les designers intègrent dès la conception des contrastes suffisants, une navigation clavier optimisée et des alternatives textuelles.</p><h2>5. Le dark mode natif</h2><p>Le mode sombre n'est plus un gadget : c'est une attente des utilisateurs. Les sites modernes proposent un basculement fluide entre thème clair et sombre, respectant les préférences système de chaque visiteur.</p>`,
+          content: `<p>Le web évolue vite. Voici les tendances qui comptent vraiment cette année, et comment les appliquer sans alourdir votre site.</p><h2>Sommaire</h2><ol><li>Le design immersif en 3D</li><li>Le minimalisme fonctionnel : moins mais mieux</li><li>Les micro-interactions</li><li>L'accessibilité comme standard</li><li>Le mode sombre natif</li><li>Comparatif des tendances</li></ol><h2>1. Le design immersif en 3D</h2><p>Les expériences en trois dimensions ne sont plus réservées aux grandes marques. Utilisées avec mesure, elles captent l'attention sans ralentir la page.</p><h2>2. Le minimalisme fonctionnel</h2><p>Moins, c'est plus : des interfaces épurées qui vont droit au but, des espaces blancs qui guident l'œil.</p><h2>3. Les micro-interactions</h2><p>De petites animations au survol ou au clic rendent la navigation plus intuitive, à condition de rester discrètes.</p><h2>4. L'accessibilité comme standard</h2><p>Contrastes suffisants, navigation au clavier, textes alternatifs : l'accessibilité se pense dès la conception.</p><h2>5. Le mode sombre natif</h2><p>Les visiteurs l'attendent : un basculement fluide entre thème clair et sombre, qui respecte leurs préférences.</p><h2>6. Comparatif des tendances</h2><table><thead><tr><th>Tendance</th><th>Effort</th><th>Effet sur la conversion</th></tr></thead><tbody><tr><td>Design 3D</td><td>Élevé</td><td>Variable</td></tr><tr><td>Minimalisme</td><td>Faible</td><td>Fort</td></tr><tr><td>Micro-interactions</td><td>Moyen</td><td>Moyen</td></tr><tr><td>Accessibilité</td><td>Moyen</td><td>Fort</td></tr><tr><td>Mode sombre</td><td>Faible</td><td>Faible</td></tr></tbody></table>`,
           coverImage: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&q=80',
           category: 'Web Design',
           tags: ['design', 'tendances', 'UX', 'accessibilité'],
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
       results.push('2 articles blog créés')
 
       // Update blog settings with categories
-      let blogSettings = await BlogSettings.findOne()
+      const blogSettings = await BlogSettings.findOne()
       if (!blogSettings) {
         await BlogSettings.create({
           enabled: true,
@@ -132,9 +133,11 @@ export async function POST(request: NextRequest) {
       results.push('Blog déjà peuplé, ignoré')
     }
 
+    // Pages statiques régénérées : la modification est visible tout de suite.
+    revalidatePath('/', 'layout')
     return NextResponse.json({ success: true, results })
   } catch (error) {
     console.error('Seed error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

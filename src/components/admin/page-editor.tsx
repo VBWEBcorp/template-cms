@@ -1,50 +1,36 @@
 'use client'
 
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react'
-import { motion } from 'framer-motion'
-import {
-  Save,
-  Check,
   ArrowLeft,
-  Eye,
-  X,
-  ExternalLink,
-  Monitor,
-  Smartphone,
+  Check,
   ChevronsDownUp,
   ChevronsUpDown,
+  ExternalLink,
+  Eye,
   Maximize2,
+  Monitor,
   RefreshCw,
+  Save,
+  Smartphone,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/admin/toast'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+
 import { AdminLoading } from '@/components/admin/admin-ui'
+import { useToast } from '@/components/admin/toast'
+import { Button } from '@/components/ui/button'
+import { type PageId, pageDefaults, pagePaths } from '@/content/pages'
+import { adminJson, errorMessage } from '@/lib/admin-session'
+import { deepMerge } from '@/lib/merge'
 import { cn } from '@/lib/utils'
 
-interface PageEditorProps {
-  pageId: string
-  title: string
-  defaultContent: Record<string, any>
-  children: (
-    content: Record<string, any>,
-    updateField: (path: string, value: any) => void
-  ) => React.ReactNode
-}
+/* eslint-disable @typescript-eslint/no-explicit-any -- contenu éditable libre, typé par src/content/pages.ts */
 
-const previewPaths: Record<string, string> = {
-  home: '/',
-  about: '/a-propos',
-  services: '/services',
-  contact: '/contact',
-  testimonials: '/#temoignages',
+interface PageEditorProps {
+  pageId: PageId
+  title: string
+  children: (content: Record<string, any>, updateField: (path: string, value: any) => void) => React.ReactNode
 }
 
 /* ── Repli/dépli global des sections ────────────────────────── */
@@ -54,85 +40,87 @@ export function useSectionsExpanded() {
   return useContext(ExpandContext)
 }
 
-export function PageEditor({ pageId, title, defaultContent, children }: PageEditorProps) {
+/** Délai avant de rafraîchir l'aperçu après une frappe. */
+const PREVIEW_DEBOUNCE_MS = 700
+
+/**
+ * Éditeur d'une page du site.
+ *
+ * - Les valeurs par défaut viennent de src/content/pages.ts (les mêmes que le
+ *   site) : jamais de champ vide à l'ouverture, mêmes noms de champs des deux côtés.
+ * - L'aperçu est la VRAIE page du site (/apercu/[pageId]) rendue avec le
+ *   brouillon en cours : il ne peut pas mentir sur le rendu.
+ * - Tous les appels passent par adminJson : une session expirée renvoie à la
+ *   connexion, une erreur serveur s'affiche (jamais de faux « Enregistré »).
+ */
+export function PageEditor({ pageId, title, children }: PageEditorProps) {
   const { toast } = useToast()
-  const [content, setContent] = useState(defaultContent)
+  const defaults = pageDefaults[pageId] as Record<string, any>
+  const [content, setContent] = useState<Record<string, any>>(defaults)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [draftKey, setDraftKey] = useState('')
+  const [reloadToken, setReloadToken] = useState(0)
   const modalIframeRef = useRef<HTMLIFrameElement | null>(null)
   const railIframeRef = useRef<HTMLIFrameElement | null>(null)
-
-  // Repli/dépli global des sections (un seul toggle en haut)
   const [expanded, setExpanded] = useState(true)
 
-  const previewPath = previewPaths[pageId]
-  const previewSrc = previewPath
-    ? (() => {
-        const [path, hash] = previewPath.split('#')
-        const sep = path.includes('?') ? '&' : '?'
-        return `${path}${sep}preview=${encodeURIComponent(pageId)}${hash ? `#${hash}` : ''}`
-      })()
-    : ''
+  const previewPath = pagePaths[pageId]
+  const hash = pageId === 'testimonials' ? '#temoignages' : ''
+  const previewSrc = `/apercu/${pageId}?${new URLSearchParams({
+    ...(draftKey ? { brouillon: draftKey } : {}),
+    v: String(reloadToken),
+  }).toString()}${hash}`
 
-  // Garde la dernière valeur de `content` accessible au handler sans le ré-abonner à chaque frappe
-  const contentRef = useRef(content)
+  // Chargement : écarts enregistrés fusionnés sur les valeurs par défaut.
   useEffect(() => {
-    contentRef.current = content
-  }, [content])
-
-  // Répond à n'importe quelle iframe d'aperçu (rail ou modale) qui s'annonce prête
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      const msg = event.data
-      if (msg && msg.type === 'preview-ready' && msg.pageId === pageId) {
-        const source = event.source as WindowProxy | null
-        source?.postMessage(
-          { type: 'preview-content', pageId, content: contentRef.current },
-          '*'
-        )
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [pageId])
-
-  // Pousse les modifications en direct vers les aperçus montés (rail + modale)
-  useEffect(() => {
-    const payload = { type: 'preview-content', pageId, content }
-    railIframeRef.current?.contentWindow?.postMessage(payload, '*')
-    modalIframeRef.current?.contentWindow?.postMessage(payload, '*')
-  }, [content, pageId])
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await fetch(`/api/content/${pageId}`)
-        const result = await response.json()
-
-        if (result.content && Object.keys(result.content).length > 0) {
-          setContent({ ...defaultContent, ...result.content })
+    let cancelled = false
+    adminJson<{ content?: Record<string, unknown>; database?: boolean }>(`/api/content/${pageId}`)
+      .then((result) => {
+        if (cancelled) return
+        if (result.database === false) {
+          setLoadError('Base de données non configurée : les modifications ne pourront pas être enregistrées.')
         }
-      } catch (error) {
-        console.error('Failed to load content:', error)
-      } finally {
-        setLoading(false)
-      }
+        setContent(deepMerge(defaults, result.content ?? {}))
+      })
+      .catch((err) => {
+        const message = errorMessage(err)
+        if (message && !cancelled) setLoadError(`Contenu enregistré illisible : ${message}`)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
+  }, [pageId, defaults])
 
-    fetchContent()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageId])
+  // Aperçu en direct : le brouillon est déposé côté serveur, puis l'aperçu se recharge.
+  useEffect(() => {
+    if (!dirty) return
+    const timer = setTimeout(() => {
+      adminJson<{ key: string }>(`/api/content/${pageId}/brouillon`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      })
+        .then(({ key }) => setDraftKey(key))
+        .catch(() => {
+          // Aperçu indisponible (base absente) : l'édition reste possible.
+        })
+    }, PREVIEW_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [content, dirty, pageId])
 
-  // Avertir avant de quitter si modifications non enregistrées
+  // Avertir avant de quitter si des modifications ne sont pas enregistrées.
   useEffect(() => {
     if (!dirty) return
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault()
-      e.returnValue = ''
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
@@ -143,45 +131,30 @@ export function PageEditor({ pageId, title, defaultContent, children }: PageEdit
     setDirty(true)
     setContent((prev) => {
       const keys = path.split('.')
-      const newContent = JSON.parse(JSON.stringify(prev))
-      let obj = newContent
+      const next = structuredClone(prev)
+      let obj = next
       for (let i = 0; i < keys.length - 1; i++) {
-        if (!(keys[i] in obj)) obj[keys[i]] = {}
+        if (!(keys[i] in obj) || typeof obj[keys[i]] !== 'object') obj[keys[i]] = {}
         obj = obj[keys[i]]
       }
       obj[keys[keys.length - 1]] = value
-      return newContent
+      return next
     })
   }, [])
 
-  const reloadRail = () => {
-    const frame = railIframeRef.current
-    if (frame) frame.src = previewSrc
-  }
+  const reloadRail = () => setReloadToken((t) => t + 1)
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch(`/api/content/${pageId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content }),
-      })
-
-      if (response.ok) {
-        setSaved(true)
-        setDirty(false)
-        toast.success('Modifications enregistrées')
-        setTimeout(() => setSaved(false), 3000)
-      } else {
-        toast.error('Erreur lors de la sauvegarde')
-      }
-    } catch {
-      toast.error('Erreur lors de la sauvegarde')
+      await adminJson(`/api/content/${pageId}`, { method: 'PUT', body: JSON.stringify({ content }) })
+      setSaved(true)
+      setDirty(false)
+      toast.success('Modifications enregistrées et publiées')
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -254,6 +227,12 @@ export function PageEditor({ pageId, title, defaultContent, children }: PageEdit
           </div>
         </div>
 
+        {loadError && (
+          <p role="alert" className="mx-auto mb-6 max-w-6xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+            {loadError}
+          </p>
+        )}
+
         {/* Layout 2 colonnes : éditeur + aperçu live sticky */}
         <div
           className={cn(
@@ -263,13 +242,10 @@ export function PageEditor({ pageId, title, defaultContent, children }: PageEdit
               : 'max-w-3xl'
           )}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="min-w-0 space-y-3"
-          >
+          <div 
+            className="animate-fade-in min-w-0 space-y-3">
             {children(content, updateField)}
-          </motion.div>
+          </div>
 
           {previewPath && (
             <aside className="sticky top-[92px] hidden lg:block">

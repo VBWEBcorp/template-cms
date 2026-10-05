@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -40,22 +39,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      <AnimatePresence>
-        {opts && (
-          <motion.div
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+              {opts && (
+          <div
+            className="animate-fade-in fixed inset-0 z-[210] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => close(false)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl"
-            >
+            <div 
+              className="animate-fade-in relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
               <div className="flex items-start gap-4">
                 <span
                   className={cn(
@@ -91,11 +80,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                   {opts.confirmLabel ?? 'Confirmer'}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
-    </ConfirmContext.Provider>
+          </ConfirmContext.Provider>
   )
 }
 

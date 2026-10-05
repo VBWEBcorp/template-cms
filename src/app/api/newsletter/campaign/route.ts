@@ -4,12 +4,12 @@ import { Subscriber } from '@/models/Newsletter'
 import { verifyAuth } from '@/lib/auth'
 import { sendCampaign, emailEnabled } from '@/lib/email'
 
-// POST — envoie une campagne à tous les abonnés actifs (admin uniquement)
+// POST : envoie une campagne à tous les abonnés actifs (admin uniquement)
 export async function POST(request: NextRequest) {
   try {
     const { authenticated, user } = await verifyAuth(request)
     if (!authenticated || user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expirée' }, { status: 401 })
     }
 
     if (!emailEnabled) {
@@ -38,6 +38,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, ...result })
   } catch (error) {
     console.error('Newsletter campaign error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

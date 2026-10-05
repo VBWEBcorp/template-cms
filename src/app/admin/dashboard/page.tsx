@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import {
   Home,
   Users,
@@ -26,6 +24,8 @@ import {
   ArrowUpRight,
   Mail,
 } from 'lucide-react'
+
+import { adminJson, errorMessage, getUser } from '@/lib/admin-session'
 
 interface AdminUser {
   email: string
@@ -62,63 +62,39 @@ const quickActions = [
   { href: '/', label: 'Voir le site', icon: ExternalLink, accent: 'bg-card text-foreground hover:bg-muted border border-border', external: true },
 ]
 
-const ease = [0.22, 1, 0.36, 1] as const
-
 const formatDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+  d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'sans date'
 
 export default function AdminDashboardPage() {
-  const [user, setUser] = useState<AdminUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Page rendue uniquement dans le navigateur (le layout admin attend la session) : lecture directe.
+  const [user] = useState<AdminUser>(() => getUser() ?? { email: '' })
   const [statsLoading, setStatsLoading] = useState(true)
   const [posts, setPosts] = useState<Post[]>([])
   const [imageCount, setImageCount] = useState(0)
   const [seeding, setSeeding] = useState(false)
   const [seedMsg, setSeedMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
-  const router = useRouter()
+  const [statsError, setStatsError] = useState('')
 
   const loadStats = useCallback(async () => {
     try {
-      const token = localStorage.getItem('authToken')
-      const [postsRes, imagesRes] = await Promise.all([
-        fetch('/api/blog/posts', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/gallery/images'),
+      const [postsData, imagesData] = await Promise.all([
+        adminJson<Post[]>('/api/blog/posts'),
+        adminJson<unknown[]>('/api/gallery/images'),
       ])
-      const postsData = postsRes.ok ? await postsRes.json() : []
-      const imagesData = imagesRes.ok ? await imagesRes.json() : []
       setPosts(Array.isArray(postsData) ? postsData : [])
       setImageCount(Array.isArray(imagesData) ? imagesData.length : 0)
-    } catch {
-      /* réseau indisponible : on garde des valeurs neutres */
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) setStatsError(message)
     } finally {
       setStatsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
-    const userStr = localStorage.getItem('authUser')
-
-    if (!token || !userStr) {
-      router.push('/admin/login')
-      return
-    }
-
-    try {
-      setUser(JSON.parse(userStr))
-    } catch {
-      router.push('/admin/login')
-      return
-    } finally {
-      setLoading(false)
-    }
-  }, [router])
-
-  useEffect(() => {
-    if (user) loadStats()
-  }, [user, loadStats])
-
-  if (loading || !user) return null
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement réseau au montage
+    loadStats()
+  }, [loadStats])
 
   const firstName = user.name?.split(' ')[0] || 'admin'
   const today = new Date().toLocaleDateString('fr-FR', {
@@ -146,20 +122,13 @@ export default function AdminDashboardPage() {
     setSeeding(true)
     setSeedMsg(null)
     try {
-      const token = localStorage.getItem('authToken')
-      const res = await fetch('/api/seed', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        setSeedMsg({ type: 'ok', text: 'Données d’exemple ajoutées. Statistiques mises à jour.' })
-        setStatsLoading(true)
-        await loadStats()
-      } else {
-        setSeedMsg({ type: 'err', text: 'Impossible de charger les données. Réessayez.' })
-      }
-    } catch {
-      setSeedMsg({ type: 'err', text: 'Erreur réseau. Vérifiez votre connexion.' })
+      await adminJson('/api/seed', { method: 'POST' })
+      setSeedMsg({ type: 'ok', text: 'Données d’exemple ajoutées. Statistiques mises à jour.' })
+      setStatsLoading(true)
+      await loadStats()
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) setSeedMsg({ type: 'err', text: message })
     } finally {
       setSeeding(false)
     }
@@ -169,12 +138,8 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-6 sm:p-7"
-        >
+        <div 
+          className="animate-fade-in relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-6 sm:p-7">
           <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-primary/25 blur-3xl" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -195,19 +160,21 @@ export default function AdminDashboardPage() {
               Voir le site
             </Link>
           </div>
-        </motion.div>
+        </div>
+
+        {statsError && (
+          <p role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+            Statistiques indisponibles : {statsError}
+          </p>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.map((stat, i) => {
+          {stats.map((stat) => {
             const Icon = stat.icon
             return (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease, delay: 0.05 + i * 0.05 }}
-              >
+              <div className="animate-fade-in"
+                key={stat.label}>
                 <Link
                   href={stat.href}
                   className="group block rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-sm sm:p-5"
@@ -226,7 +193,7 @@ export default function AdminDashboardPage() {
                   <p className="mt-0.5 text-xs font-medium text-foreground/80">{stat.label}</p>
                   <p className="text-[11px] text-muted-foreground">{stat.hint}</p>
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
         </div>
@@ -234,12 +201,8 @@ export default function AdminDashboardPage() {
         {/* Recent posts + Quick actions */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {/* Recent posts */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease, delay: 0.15 }}
-            className="rounded-2xl border border-border bg-card p-5 lg:col-span-2"
-          >
+          <div 
+            className="animate-fade-in rounded-2xl border border-border bg-card p-5 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-foreground">Articles récents</h2>
               <Link href="/admin/blog" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
@@ -300,15 +263,11 @@ export default function AdminDashboardPage() {
                 ))}
               </ul>
             )}
-          </motion.div>
+          </div>
 
           {/* Quick actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease, delay: 0.2 }}
-            className="rounded-2xl border border-border bg-card p-5"
-          >
+          <div 
+            className="animate-fade-in rounded-2xl border border-border bg-card p-5">
             <h2 className="mb-4 text-sm font-semibold text-foreground">Actions rapides</h2>
             <div className="space-y-2">
               {quickActions.map((action) => {
@@ -326,15 +285,11 @@ export default function AdminDashboardPage() {
                 )
               })}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Modules */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease, delay: 0.25 }}
-        >
+        <div className="animate-fade-in">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Gérer le contenu</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {modules.map((mod) => {
@@ -356,15 +311,11 @@ export default function AdminDashboardPage() {
               )
             })}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Seed — données d'exemple */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease, delay: 0.3 }}
-          className="rounded-2xl border border-border bg-card p-5"
-        >
+        {/* Seed : données d'exemple */}
+        <div 
+          className="animate-fade-in rounded-2xl border border-border bg-card p-5">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/70">
@@ -404,7 +355,7 @@ export default function AdminDashboardPage() {
               {seedMsg.text}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   )

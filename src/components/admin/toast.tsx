@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,18 +29,12 @@ const VARIANTS: Record<ToastType, { icon: typeof CheckCircle2; cls: string; icon
 function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) {
   const { icon: Icon, cls, iconCls } = VARIANTS[item.type]
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 24, scale: 0.96 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className={cn(
-        'pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg shadow-black/5',
+        'animate-fade-in pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg shadow-black/5',
         cls
       )}
-      role="status"
-    >
+      role="status">
       <Icon className={cn('mt-0.5 size-[18px] shrink-0', iconCls)} />
       <p className="flex-1 text-sm font-medium leading-snug">{item.message}</p>
       <button
@@ -51,7 +44,7 @@ function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) 
       >
         <X className="size-4" />
       </button>
-    </motion.div>
+    </div>
   )
 }
 
@@ -85,11 +78,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ toast }}>
       {children}
       <div className="pointer-events-none fixed bottom-4 right-4 z-[200] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-2">
-        <AnimatePresence initial={false}>
-          {toasts.map((t) => (
+        {toasts.map((t) => (
             <ToastCard key={t.id} item={t} onClose={() => remove(t.id)} />
           ))}
-        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   )

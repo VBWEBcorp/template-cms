@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useRef, useState } from 'react'
 import { Upload, Link as LinkIcon, X, Loader2, ImageIcon, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/admin/toast'
+import { adminFetch, errorMessage } from '@/lib/admin-session'
 import { useSectionsExpanded } from '@/components/admin/page-editor'
 import { cn } from '@/lib/utils'
 
@@ -58,10 +58,12 @@ interface SectionEditorProps {
 export function SectionEditor({ title, description, icon: Icon, cols = 2, children }: SectionEditorProps) {
   const expandedAll = useSectionsExpanded()
   const [open, setOpen] = useState(expandedAll)
-  // Se synchronise quand on actionne le toggle global (sans boucle : dépend d'un booléen stable)
-  useEffect(() => {
+  // Suit le bouton global « Tout replier / Tout déplier » (ajustement pendant le rendu).
+  const [lastExpandedAll, setLastExpandedAll] = useState(expandedAll)
+  if (expandedAll !== lastExpandedAll) {
+    setLastExpandedAll(expandedAll)
     setOpen(expandedAll)
-  }, [expandedAll])
+  }
 
   return (
     <section
@@ -92,16 +94,10 @@ export function SectionEditor({ title, description, icon: Icon, cols = 2, childr
           )}
         />
       </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="content"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
+              {open && (
+          <div
+            key="content" 
+            className="animate-fade-in overflow-hidden">
             <div
               className={cn(
                 'grid grid-cols-1 gap-x-5 gap-y-4 border-t border-border/60 p-5',
@@ -110,10 +106,9 @@ export function SectionEditor({ title, description, icon: Icon, cols = 2, childr
             >
               {children}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </section>
+          </section>
   )
 }
 
@@ -136,28 +131,21 @@ export function ImageField({ label, value, onChange }: ImageFieldProps) {
   const handleUpload = async (file: File) => {
     setUploading(true)
     try {
-      const token = localStorage.getItem('authToken')
       const formData = new FormData()
       formData.append('file', file)
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      })
-
+      // adminFetch : jeton posé, session expirée traitée (redirection vers la connexion).
+      const response = await adminFetch('/api/upload', { method: 'POST', body: formData })
+      const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const data = await response.json()
-        toast.error(data.error || "Erreur lors de l’upload")
+        toast.error(data.error || 'Erreur lors de l’envoi de l’image')
         return
       }
-
-      const data = await response.json()
       onChange(data.url)
       setUploadInfo(`${data.originalSize} → ${data.optimizedSize} (${data.storage})`)
       toast.success('Image importée')
-    } catch {
-      toast.error("Erreur lors de l’upload")
+    } catch (err) {
+      const message = errorMessage(err)
+      if (message) toast.error(message)
     } finally {
       setUploading(false)
     }
@@ -193,7 +181,7 @@ export function ImageField({ label, value, onChange }: ImageFieldProps) {
             )}
           >
             <Upload className="size-3" />
-            Upload
+            Envoyer
           </button>
           <button
             type="button"
@@ -269,13 +257,13 @@ export function ImageField({ label, value, onChange }: ImageFieldProps) {
                 {uploading ? (
                   <>
                     <Loader2 className="size-5 animate-spin text-primary" />
-                    <span className="text-xs text-muted-foreground">Upload en cours…</span>
+                    <span className="text-xs text-muted-foreground">Envoi en cours…</span>
                   </>
                 ) : (
                   <>
                     <Upload className="size-5 text-muted-foreground" />
                     <span className="text-xs font-medium text-foreground">Cliquez ou glissez une image</span>
-                    <span className="text-[11px] text-muted-foreground/70">JPG, PNG, WebP, GIF — max 10 Mo</span>
+                    <span className="text-[11px] text-muted-foreground/70">JPG, PNG, WebP ou GIF, 10 Mo maximum</span>
                   </>
                 )}
               </div>

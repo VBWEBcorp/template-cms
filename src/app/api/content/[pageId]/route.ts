@@ -61,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     const page = await SiteContent.findOneAndUpdate(
       { pageId },
       { pageId, content: diff },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     ).lean()
 
     // Toutes les pages : les coordonnées (Contact) apparaissent aussi dans le

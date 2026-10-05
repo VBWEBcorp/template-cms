@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
   try {
     const settings = normalizeMarketing(await request.json())
     await connectDB()
-    await MarketingPopup.findOneAndUpdate({}, settings, { upsert: true, new: true })
+    await MarketingPopup.findOneAndUpdate({}, settings, { upsert: true, returnDocument: 'after' })
     // Le bandeau et la popup sont rendus avec les pages : on les régénère toutes.
     revalidatePath('/', 'layout')
     return NextResponse.json(settings)

@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     }
     if (body.published && !body.publishedAt) body.publishedAt = before.publishedAt ?? new Date()
 
-    const post = await BlogPost.findOneAndUpdate({ slug }, body, { new: true, runValidators: true })
+    const post = await BlogPost.findOneAndUpdate({ slug }, body, { returnDocument: 'after', runValidators: true })
     if (!post) return NextResponse.json({ error: 'Article introuvable' }, { status: 404 })
 
     await notifyNewPost(post, before.published === true)

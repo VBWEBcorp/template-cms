@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
     const image = await GalleryImage.findByIdAndUpdate(
       id,
       { title, description, imageUrl, category, order, active },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
 
     if (!image) {

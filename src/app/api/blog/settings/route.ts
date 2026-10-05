@@ -30,7 +30,7 @@ export async function PUT(request: Request) {
     for (const key of FIELDS) if (key in body) update[key] = body[key]
 
     await connectDB()
-    const settings = await BlogSettings.findOneAndUpdate({}, update, { upsert: true, new: true, setDefaultsOnInsert: true })
+    const settings = await BlogSettings.findOneAndUpdate({}, update, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true })
     revalidateBlog()
     return NextResponse.json(settings)
   } catch (error) {

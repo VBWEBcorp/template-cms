@@ -16,13 +16,14 @@ import { BlogFilters } from './blog-filters'
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getBlogSettings()
+  const [settings, posts] = await Promise.all([getBlogSettings(), listPosts()])
   return buildMetadata({
     title: settings.title,
     description: settings.description,
     path: BLOG_BASE,
     image: settings.heroImage ? { url: settings.heroImage } : null,
-    noindex: !settings.enabled,
+    // Blog vide : page sans intérêt pour Google tant qu'aucun article n'est en ligne.
+    noindex: !settings.enabled || posts.length === 0,
   })
 }
 

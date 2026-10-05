@@ -54,6 +54,7 @@ describe('valeurs par défaut', () => {
   it('seuls les écarts partent en base', () => {
     expect(diffFromDefaults({ a: 1, b: { c: 2, d: 3 } }, { a: 1, b: { c: 2, d: 4 } })).toEqual({ b: { d: 4 } })
     expect(diffFromDefaults({ a: 1 }, { a: 1 })).toBeUndefined()
+    expect(diffFromDefaults({ a: 'x', b: 'y' }, { a: '', b: 'z' })).toEqual({ b: 'z' })
   })
 })
 

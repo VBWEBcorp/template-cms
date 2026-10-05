@@ -52,5 +52,7 @@ export function diffFromDefaults(base: unknown, value: unknown): unknown {
     }
     return Object.keys(out).length > 0 ? out : undefined
   }
+  // Un champ vidé vaut « valeur par défaut » (deepMerge l'ignore) : inutile de le stocker.
+  if (value === '' || value === null || value === undefined) return undefined
   return deepEqual(base, value) ? undefined : value
 }

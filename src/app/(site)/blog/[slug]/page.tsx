@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
   return buildMetadata({
     title: post.metaTitle || post.title,
+    // Titre SEO fourni (PHARE ou admin) : utilisé tel quel, sans ajouter le nom du site.
+    absoluteTitle: Boolean(post.metaTitle),
     description: post.metaDescription || post.excerpt || stripTags(post.content).slice(0, 160),
     path: `${BLOG_BASE}/${post.slug}`,
     image: post.coverImage ? { url: post.coverImage, alt: post.coverImageAlt } : null,

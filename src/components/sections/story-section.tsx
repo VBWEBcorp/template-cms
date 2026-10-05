@@ -1,121 +1,63 @@
-'use client'
-
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRef } from 'react'
+import type { CSSProperties } from 'react'
 
-import { useContent } from '@/hooks/use-content'
-import { storyContent as defaults } from '@/lib/site-content'
+import type { homeDefaults } from '@/content/pages'
 
-const ease = [0.22, 1, 0.36, 1] as const
+type Story = (typeof homeDefaults)['story']
 
-export function StorySection() {
-  const { data } = useContent('home', { story: defaults })
-  const story = data.story ?? defaults
-  const ref = useRef<HTMLDivElement>(null)
-  const reduceMotion = useReducedMotion()
+const stagger = (i: number) => ({ '--stagger': i }) as CSSProperties
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  })
-  const imageY = useTransform(scrollYProgress, [0, 1], reduceMotion ? [0, 0] : [-30, 30])
-
+/** « Notre histoire » : apparition au défilement et parallaxe de la photo, en CSS seul. */
+export function StorySection({ story }: { story: Story }) {
   return (
-    <section ref={ref} className="border-b border-border/60 bg-background">
+    <section className="border-b border-border/60 bg-background">
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
         <div className="grid items-center gap-14 md:grid-cols-2 md:gap-16 lg:gap-24">
-          {/* Text — slide from left, stagger children */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
-            }}
-            className="max-w-xl"
-          >
-            <motion.span
-              variants={{
-                hidden: { opacity: 0, x: reduceMotion ? 0 : -32 },
-                visible: { opacity: 1, x: 0, transition: { duration: 0.55, ease } },
-              }}
-              className="inline-block font-display text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase"
+          <div className="max-w-xl">
+            <p
+              className="reveal-left inline-block font-display text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase"
+              style={stagger(0)}
             >
               {story.eyebrow}
-            </motion.span>
+            </p>
 
-            <motion.h2
-              variants={{
-                hidden: { opacity: 0, x: reduceMotion ? 0 : -32 },
-                visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease } },
-              }}
-              className="mt-5 font-display text-balance text-[32px] leading-[1.08] tracking-[-0.02em] text-foreground sm:text-[40px] lg:text-[48px]"
+            <h2
+              className="reveal-left mt-5 font-display text-[32px] leading-[1.08] tracking-[-0.02em] text-balance text-foreground sm:text-[40px] lg:text-[48px]"
+              style={stagger(1)}
             >
               {story.title}
-            </motion.h2>
+            </h2>
 
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 12 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease } },
-              }}
-              className="mt-7 space-y-5"
-            >
-              <p className="text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-                {story.paragraph1}
-              </p>
-              <p className="text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-                {story.paragraph2}
-              </p>
-            </motion.div>
+            <div className="reveal mt-7 space-y-5" style={stagger(2)}>
+              <p className="text-[15px] leading-relaxed text-muted-foreground sm:text-base">{story.paragraph1}</p>
+              <p className="text-[15px] leading-relaxed text-muted-foreground sm:text-base">{story.paragraph2}</p>
+            </div>
 
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 8 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease } },
-              }}
-              className="mt-8"
-            >
-              <Link
-                href="/a-propos"
-                className="group inline-flex items-center gap-2 text-sm font-semibold text-foreground"
-              >
+            <div className="reveal mt-8" style={stagger(3)}>
+              <Link href="/a-propos" className="group inline-flex items-center gap-2 text-sm font-semibold text-foreground">
                 <span className="border-b border-foreground/60 pb-0.5 transition-colors duration-300 group-hover:border-foreground">
                   Lire notre histoire
                 </span>
-                <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
-          {/* Image — slide from right + parallax Y */}
-          <motion.div
-            initial={{ opacity: 0, x: reduceMotion ? 0 : 40, scale: 0.96 }}
-            whileInView={{ opacity: 1, x: 0, scale: 1 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.75, ease, delay: 0.1 }}
-            className="relative"
-          >
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.4, ease }}
-              className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted shadow-[0_20px_60px_-20px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5"
-            >
-              <motion.div className="absolute inset-0 -inset-y-8" style={{ y: imageY }}>
+          <div className="reveal-right relative">
+            <div className="parallax-scope relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted shadow-[0_20px_60px_-20px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 transition-transform duration-500 hover:-translate-y-1">
+              <div className="parallax-y-scoped absolute inset-x-0 -inset-y-8">
                 <Image
                   src={story.image}
-                  alt=""
+                  alt={story.title}
                   fill
-                  sizes="(min-width:768px) 45vw, 100vw"
+                  sizes="(min-width: 1152px) 528px, (min-width: 768px) 45vw, 100vw"
                   className="object-cover"
                 />
-              </motion.div>
-            </motion.div>
-          </motion.div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

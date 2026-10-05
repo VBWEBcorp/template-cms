@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { Subscriber } from '@/models/Newsletter'
 import { verifyUnsubscribeToken } from '@/lib/email'
-import { siteConfig } from '@/lib/seo'
+import { siteConfig } from '@/config/site'
 
 function htmlPage(title: string, body: string, status = 200) {
   return new NextResponse(

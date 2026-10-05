@@ -1,112 +1,80 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
+import { Instrument_Serif, Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import type { CSSProperties } from 'react'
 
-import { RootWrapper } from '@/components/layout/root-wrapper'
 import { ThemeScript } from '@/components/theme/theme-script'
-import { organizationJsonLd, webSiteJsonLd } from '@/components/seo/json-ld'
-import { siteConfig } from '@/lib/seo'
+import { siteConfig } from '@/config/site'
+import { buildMetadata } from '@/lib/seo'
 
 import '../index.css'
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-})
+// Polices auto-hébergées par next/font : aucune requête vers Google, pas de
+// décalage de mise en page (repli ajusté automatiquement).
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-display',
+  variable: '--font-jakarta',
   weight: ['500', '600', '700'],
   display: 'swap',
 })
 
-// Serif italic — pour mots accentués dans les titres (style éditorial premium)
+// Serif italique pour le mot mis en valeur dans les grands titres.
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
-  variable: '--font-serif',
+  variable: '--font-instrument',
   weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
 })
 
-// Mono — pour eyebrows, KPIs, labels techniques (style Linear/Vercel)
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500', '600'],
-  display: 'swap',
-})
-
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  // og:title / og:description / og:url laissés vides ici : Next les remplit par
-  // page (title/description propres + URL canonique). L'image og:image/twitter:image
-  // vient de la convention src/app/opengraph-image.tsx.
-  openGraph: {
-    type: 'website',
-    locale: siteConfig.locale,
-    siteName: siteConfig.name,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    // Émis seulement si un compte est configuré (évite un twitter:site vide).
-    ...(siteConfig.twitterHandle ? { site: siteConfig.twitterHandle } : {}),
-  },
+  applicationName: siteConfig.name,
+  ...buildMetadata({
+    title: siteConfig.name,
+    description: siteConfig.description,
+    path: '/',
+    absoluteTitle: true,
+  }),
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
     'max-image-preview': 'large',
     'max-snippet': -1,
     'max-video-preview': -1,
   },
-  // apple-touch-icon via la convention src/app/apple-icon.tsx ; manifest via
-  // src/app/manifest.ts. Favicon = le SVG existant.
-  icons: {
-    icon: '/favicon.svg',
-  },
+  formatDetection: { telephone: false, email: false, address: false },
+  // icon.png, apple-icon.png et favicon.ico : conventions de fichiers de src/app.
   alternates: {
-    canonical: '/',
+    types: { 'application/rss+xml': [{ url: '/blog/rss.xml', title: `${siteConfig.name} : articles` }] },
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: siteConfig.themeColor,
+  themeColor: siteConfig.theme.themeColor,
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="fr"
+      lang={siteConfig.lang}
       dir="ltr"
-      className={`${inter.variable} ${jakarta.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jakarta.variable} ${instrumentSerif.variable}`}
+      style={{ '--brand-hue': siteConfig.theme.brandHue } as CSSProperties}
       suppressHydrationWarning
     >
       <head>
         <ThemeScript />
       </head>
-      <body className="flex min-h-dvh flex-col">
-        {/* Entité de marque émise sur chaque page (Organization + WebSite, @id stables). */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@graph': [organizationJsonLd(), webSiteJsonLd()],
-            }),
-          }}
-        />
-        <RootWrapper>{children}</RootWrapper>
-      </body>
+      <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
   )
 }

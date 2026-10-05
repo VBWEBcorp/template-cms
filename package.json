@@ -1,14 +1,17 @@
 {
   "name": "template-site-vitrine",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "images": "node scripts/generer-images.mts",
+    "create-admin": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",

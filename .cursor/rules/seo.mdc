@@ -1,57 +1,39 @@
 ---
-description: Normes SEO — référencement naturel, indexation Google, données structurées
+description: Normes SEO du template (Next 16, rendu serveur, métadonnées, données structurées)
 alwaysApply: true
 ---
 
-# Règle permanente — SEO / Référencement naturel
+# Règle permanente : SEO
 
-Le référencement est une priorité absolue. Chaque page doit être prête pour Google Search Console dès le premier déploiement.
+Chaque page doit être prête pour la Search Console dès le premier déploiement.
 
-## Obligations pour chaque page
+## Pour chaque page publique (src/app/(site))
 
-1. **`<SeoHead>`** obligatoire sur chaque page routée (`src/pages/*`), avec :
-   - `title` unique et descriptif (≤ 60 caractères idéal)
-   - `description` unique (≤ 155 caractères)
-   - `canonical` pointant vers l'URL propre
-   - `ogImage` (1200×630px minimum)
-   - `jsonLd` avec schéma approprié (`WebPage`, `Article`, `Product`, `FAQPage`, etc.)
-
-2. **Pas de `noindex`** sur les pages publiques — seulement sur les pages admin/auth.
-
-3. **Données structurées JSON-LD** : utiliser les helpers dans `src/components/seo/json-ld.tsx`. Ajouter le type de schéma pertinent pour chaque page.
+1. Métadonnées par `buildMetadata()` (src/lib/seo.ts) : titre complet de 60 caractères maximum, description de 155 maximum, canonical absolu, image de partage. Ne jamais déclarer `openGraph` à la main : Next fusionne en surface et l'image disparaîtrait.
+2. Données structurées par les helpers de src/lib/structured-data.ts, rendues avec `<JsonLd>` dans le HTML servi (WebPage, BreadcrumbList, et selon la page Service, FAQPage, BlogPosting).
+3. Texte important rendu côté serveur : composant serveur par défaut, `'use client'` seulement pour un îlot interactif. Vérifier avec `curl` que le HTML servi contient les textes, le h1 et le JSON-LD.
+4. `noindex` uniquement sur les pages légales, l'aperçu et l'admin.
 
 ## HTML sémantique
 
-- Un seul `<h1>` par page (dans la section Hero ou en haut de page).
-- Hiérarchie `h1` → `h2` → `h3` stricte, jamais de saut.
-- Balises `<section>`, `<article>`, `<nav>`, `<header>`, `<footer>`, `<main>` correctement placées.
-- Attributs `aria-label` sur les `<nav>` multiples.
-- `alt` descriptif sur toutes les `<img>`.
+- Un seul `<h1>` par page, hiérarchie h1, h2, h3 sans saut.
+- `alt` descriptif sur toute image porteuse de sens, `alt=""` sur une image décorative.
+- `aria-label` distinct sur chaque `<nav>`.
 
-## Sitemap & robots
+## Sitemap, robots, llms.txt
 
-- Chaque nouvelle route publique doit être ajoutée dans `scripts/generate-sitemap.ts` ET dans `src/lib/seo.ts` (`routes`).
-- `robots.txt` dans `public/` — ne jamais bloquer les pages publiques.
-- Le script `npm run sitemap` regénère le sitemap.
+- src/app/sitemap.ts : toute nouvelle page publique y est ajoutée, avec sa vraie date de modification et ses images.
+- src/app/robots.ts : ne bloque que /admin, /api/ et /apercu/.
+- /llms.txt : déposé par PHARE, texte par défaut dans src/app/llms.txt/route.ts.
 
-## Performance (Core Web Vitals)
+## Performance
 
-- Images : formats modernes (WebP/AVIF), `loading="lazy"`, dimensions explicites.
-- Fonts : `preconnect` dans `index.html`, `font-display: swap`.
-- Pas de JS bloquant le rendu au-dessus du fold.
-- Garder le bundle initial sous contrôle (lazy-load les pages secondaires via `React.lazy`).
+- next/image avec `sizes` exacts ; `preload` seulement sur l'image LCP au-dessus de la ligne de flottaison.
+- Polices par next/font uniquement.
+- Animations en CSS (src/index.css : reveal, parallax, keyframes), jamais de bibliothèque d'animation.
+- Dans un composant client du site public, assembler les classes avec `cx` (src/lib/cx.ts) et non `cn`, pour ne pas embarquer tailwind-merge.
 
-## Pré-rendu
+## Avant mise en ligne
 
-- `vite-plugin-seo-prerender` génère le HTML statique au build pour chaque route listée dans `vite.config.ts`.
-- Vérifier que le HTML pré-rendu contient bien les balises `<title>`, `<meta description>`, et le JSON-LD.
-
-## Checklist SEO avant déploiement
-
-- [ ] `<SeoHead>` sur chaque page avec title + description + canonical + jsonLd
-- [ ] `sitemap.xml` contient toutes les routes publiques
-- [ ] `robots.txt` autorise le crawl et pointe vers le sitemap
-- [ ] HTML pré-rendu vérifié (build puis inspecter `dist/index.html`)
-- [ ] Open Graph vérifié (outil : https://www.opengraph.xyz/)
-- [ ] Données structurées validées (outil : https://search.google.com/test/rich-results)
-- [ ] Core Web Vitals acceptables (Lighthouse ≥ 90 en performance)
+- `npm run build`, `npm test`, puis contrôle par curl (voir README, section « Vérifier »).
+- Test des résultats enrichis : https://search.google.com/test/rich-results

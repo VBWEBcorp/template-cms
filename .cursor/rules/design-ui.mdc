@@ -1,32 +1,26 @@
 ---
-description: Standards UI/UX premium — composants shadcn, Tailwind, cohérence SaaS
+description: Standards UI du template (Tailwind 4, tokens de marque, animations CSS)
 alwaysApply: true
 ---
 
-# Règle permanente — UI premium
+# Règle permanente : interface soignée
 
-Chaque composant doit être **beau par défaut**. Ne jamais générer d’UI fade, trop brute ou trop générique.
+Chaque composant doit être beau par défaut, sans alourdir la page.
 
 ## Priorités
 
-- **Base** : shadcn/ui (Radix Nova) pour les primitives ; étendre avec soin plutôt que réinventer.
-- **Style** : Tailwind utilitaire, classes intentionnelles ; éviter le bruit et les utilitaires redondants.
-- **Espacement** : généreux, rythmé (échelle cohérente 4/8/12/16/24+).
-- **Cohérence** : rayons (`rounded-*`), ombres (`shadow-*` / tokens CSS), contrastes et hiérarchie typographique alignés sur `src/index.css`.
-- **Responsive** : mobile d’abord ; vérifier états tactiles et zones de clic.
-- **Micro-interactions** : Framer Motion avec parcimonie (durées courtes, easing premium, pas d’excès).
-- **Architecture** : `components/ui` (primitives), `components/layout`, `components/sections`, `pages`, `layouts`.
-
-## Références
-
-- Qualité visuelle cible : **Linear**, **Vercel**, **Stripe**, **Framer**, **Raycast**.
-- Éviter : rendu type Bootstrap, dashboard admin “cheap”, cartes plates sans hiérarchie.
+- Primitives maison dans `src/components/ui` (Button, Card, Input, Label), sans dépendance.
+- Couleurs : uniquement les tokens de `src/index.css` (`primary`, `primary-deep`, `primary-on-dark`, `surface-tint`...). La teinte de marque se règle dans `src/config/site.ts` (`theme.brandHue`). Jamais de beige, crème ou sable : fonds clairs en gris bleuté ou `surface-tint`.
+- Espacement généreux et rythmé ; rayons et ombres alignés sur les tokens (`--shadow-*`).
+- Mobile d'abord ; zones de clic confortables.
+- Animations en CSS seulement : `animate-fade-up`, `reveal`, `reveal-left`, `parallax-y`, `gradient-ring`... Toujours compatibles `prefers-reduced-motion`.
+- Composants serveur par défaut ; un composant client est un petit îlot interactif.
 
 ## États
 
-- Toujours prévoir **hover**, **focus-visible**, **active** et **disabled** là où c’est pertinent.
-- Accessibilité : focus visible, `aria-*`, contrastes lisibles.
+- Prévoir hover, focus-visible, active et disabled.
+- Accessibilité : focus visible, `aria-*`, contrastes lisibles en clair comme en sombre.
 
-## À faire
+## Textes
 
-- Lors de nouvelles features : réutiliser ou composer depuis `@/components/ui` avant d’ajouter des one-off visuels.
+- Français naturel. Jamais de tiret long (cadratin, demi-cadratin) : parenthèses, deux-points ou deux phrases.

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Send, Check, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 

@@ -1,8 +1,9 @@
 import { ArrowRight, Star } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { AccentTitle } from '@/components/sections/accent-title'
-import { HeroCarousel } from '@/components/sections/hero-carousel'
+import { HeroRotator } from '@/components/sections/hero-rotator'
 import { ValuesMarquee } from '@/components/sections/values-marquee'
 import { Button } from '@/components/ui/button'
 import { siteConfig } from '@/config/site'
@@ -21,8 +22,27 @@ export function HeroSection({ hero }: { hero: Hero }) {
 
   return (
     <section className="relative isolate overflow-hidden border-b border-border/60">
+      <div className="absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute inset-0">
+          {hero.images.map((src, i) => (
+            <div key={src + i} data-hero-slide className="absolute inset-0">
+              <Image
+                src={src}
+                alt=""
+                fill
+                sizes="100vw"
+                preload={i === 0}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+      </div>
+
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
-        <HeroCarousel images={hero.images}>
           <div className="animate-fade-up mx-auto max-w-3xl text-center">
             <p className="font-display text-xs font-semibold tracking-[0.22em] text-white/70 uppercase">{hero.eyebrow}</p>
 
@@ -86,7 +106,7 @@ export function HeroSection({ hero }: { hero: Hero }) {
               </div>
             )}
           </div>
-        </HeroCarousel>
+        <HeroRotator count={hero.images.length} />
       </div>
 
       <ValuesMarquee variant="dark" />

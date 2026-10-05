@@ -584,3 +584,16 @@ details.disclosure[open] .disclosure-ring {
 .blog-content .article-toc a:hover {
   text-decoration: underline;
 }
+
+/* Photos du hero : la première visible au chargement, HeroRotator fait tourner les suivantes. */
+[data-hero-slide] {
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out-soft);
+}
+[data-hero-slide]:first-child:not([data-active]),
+[data-hero-slide][data-active='true'] {
+  opacity: 1;
+}
+[data-hero-slide][data-active='true']:not(:first-child) img {
+  animation: ken-burns 1.2s var(--ease-out-soft) both;
+}

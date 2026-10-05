@@ -4,18 +4,18 @@ import { CheckCircle2, Send } from 'lucide-react'
 import Link from 'next/link'
 import { type FormEvent, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 
 type FieldErrors = Partial<Record<'name' | 'email' | 'phone' | 'message', string>>
 
+// Classes écrites en clair (sans tailwind-merge) : ce composant client reste léger.
 const fieldClass =
-  'h-11 rounded-xl bg-background/70 transition-shadow focus-visible:shadow-[0_0_0_4px_oklch(0.55_0.2_var(--brand-hue)/0.1)]'
+  'h-11 w-full min-w-0 rounded-xl border border-input bg-background/70 px-2.5 py-1 text-base text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:border-ring focus-visible:shadow-[0_0_0_4px_oklch(0.55_0.2_var(--brand-hue)/0.1)] aria-invalid:border-destructive md:text-sm'
+const labelClass = 'flex items-center gap-2 text-sm leading-none font-medium select-none'
+const submitClass =
+  "group relative isolate inline-flex h-9 w-full items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-brand-gradient px-2.5 text-sm font-medium whitespace-nowrap text-primary-foreground shadow-[var(--shadow-primary)] transition-all outline-none hover:shadow-[var(--shadow-primary-hover)] focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-60 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:transition-transform before:duration-700 before:content-[''] hover:before:translate-x-full"
 
 /**
- * Formulaire de contact : envoi à /api/contact (Resend). Pas de Formspree, pas
+ * Formulaire de contact : envoi à /api/contact (Resend). Pas de service tiers, pas
  * de mailto. Le champ `company` est un pot de miel invisible pour les robots.
  */
 export function ContactForm({ successMessage }: { successMessage: string }) {
@@ -72,12 +72,12 @@ export function ContactForm({ successMessage }: { successMessage: string }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="firstname">Prénom</Label>
-          <Input id="firstname" name="firstname" placeholder="Camille" autoComplete="given-name" required className={fieldClass} />
+          <label className={labelClass} htmlFor="firstname">Prénom</label>
+          <input id="firstname" name="firstname" placeholder="Camille" autoComplete="given-name" required className={fieldClass} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastname">Nom</Label>
-          <Input
+          <label className={labelClass} htmlFor="lastname">Nom</label>
+          <input
             id="lastname"
             name="lastname"
             placeholder="Martin"
@@ -96,8 +96,8 @@ export function ContactForm({ successMessage }: { successMessage: string }) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input
+        <label className={labelClass} htmlFor="email">E-mail</label>
+        <input
           id="email"
           name="email"
           type="email"
@@ -116,10 +116,10 @@ export function ContactForm({ successMessage }: { successMessage: string }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">
+        <label className={labelClass} htmlFor="phone">
           Téléphone <span className="font-normal text-muted-foreground">(optionnel)</span>
-        </Label>
-        <Input
+        </label>
+        <input
           id="phone"
           name="phone"
           type="tel"
@@ -137,7 +137,7 @@ export function ContactForm({ successMessage }: { successMessage: string }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="message">Votre message</Label>
+        <label className={labelClass} htmlFor="message">Votre message</label>
         <textarea
           id="message"
           name="message"
@@ -162,10 +162,10 @@ export function ContactForm({ successMessage }: { successMessage: string }) {
         </p>
       )}
 
-      <Button type="submit" size="lg" disabled={sending} className={cn('group w-full', sending && 'opacity-70')}>
+      <button type="submit" disabled={sending} className={submitClass}>
         {sending ? 'Envoi en cours...' : 'Envoyer le message'}
         <Send className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
-      </Button>
+      </button>
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         Vos coordonnées servent uniquement à répondre à votre demande.{' '}

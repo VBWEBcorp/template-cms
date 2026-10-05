@@ -7,7 +7,7 @@ import { type CSSProperties, useEffect, useRef, useState } from 'react'
 
 import { Logo } from '@/components/layout/logo'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 type NavLink = { href: string; label: string }
 
@@ -48,8 +48,12 @@ export function Navbar({
     }
   }, [open])
 
-  // Le menu mobile se ferme à chaque changement de page.
-  useEffect(() => setOpen(false), [pathname])
+  // Le menu mobile se ferme à chaque changement de page (ajustement pendant le rendu).
+  const [lastPath, setLastPath] = useState(pathname)
+  if (pathname !== lastPath) {
+    setLastPath(pathname)
+    setOpen(false)
+  }
 
   const showPill = (el: HTMLElement) => {
     const nav = navRef.current

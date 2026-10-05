@@ -3,7 +3,7 @@
 import { ArrowUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 export function ScrollToTop() {
   const [visible, setVisible] = useState(false)

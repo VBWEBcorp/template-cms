@@ -1,7 +1,7 @@
 import { Globe } from 'lucide-react'
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 /** Logo texte + pictogramme. Pour un vrai logo : remplacer le contenu du lien par une <Image>. */
 export function Logo({ name, className }: { name: string; className?: string }) {

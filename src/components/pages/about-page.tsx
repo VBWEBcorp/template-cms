@@ -7,7 +7,7 @@ import { AccentTitle } from '@/components/sections/accent-title'
 import { CtaSection } from '@/components/sections/cta-section'
 import { SectionTitle } from '@/components/ui/section-title'
 import type { aboutDefaults, homeDefaults } from '@/content/pages'
-import { getIcon } from '@/lib/icons'
+import { NamedIcon } from '@/components/ui/named-icon'
 
 type About = typeof aboutDefaults
 
@@ -115,7 +115,6 @@ function ValuesTimeline({ values }: { values: About['values'] }) {
 
       <ul className="space-y-12 md:space-y-16">
         {values.map((v, i) => {
-          const Icon = getIcon(v.iconName)
           const right = i % 2 === 1
           return (
             <li key={v.title || i} className="relative">
@@ -123,7 +122,7 @@ function ValuesTimeline({ values }: { values: About['values'] }) {
                 <span className="relative flex size-10 items-center justify-center rounded-full bg-background shadow-[0_0_20px_oklch(0.55_0.2_var(--brand-hue)/0.4)] ring-1 ring-primary/30">
                   <span aria-hidden className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                   <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-                  <Icon className="relative size-4 text-primary" aria-hidden />
+                  <NamedIcon name={v.iconName} className="relative size-4 text-primary" aria-hidden />
                 </span>
               </div>
 

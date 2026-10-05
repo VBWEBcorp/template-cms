@@ -3,12 +3,14 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [dark, setDark] = useState(false)
 
   useEffect(() => {
+    // Le thème est posé avant hydratation par ThemeScript : on s'aligne une fois monté.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture d'un état du DOM après hydratation
     setDark(document.documentElement.classList.contains('dark'))
   }, [])
 

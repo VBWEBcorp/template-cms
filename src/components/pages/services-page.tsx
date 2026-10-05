@@ -4,12 +4,11 @@ import type { CSSProperties } from 'react'
 import { CtaSection } from '@/components/sections/cta-section'
 import { PremiumHero } from '@/components/sections/premium-hero'
 import type { ServiceItem, homeDefaults, servicesDefaults } from '@/content/pages'
-import { getIcon } from '@/lib/icons'
+import { NamedIcon } from '@/components/ui/named-icon'
 
 const stagger = (i: number) => ({ '--stagger': i }) as CSSProperties
 
 function ServiceRow({ service, index }: { service: ServiceItem; index: number }) {
-  const Icon = getIcon(service.iconName)
   const reversed = index % 2 === 1
 
   return (
@@ -47,7 +46,7 @@ function ServiceRow({ service, index }: { service: ServiceItem; index: number })
           className={`${reversed ? 'reveal-left' : 'reveal-right'} inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/20`}
           style={stagger(0)}
         >
-          <Icon className="size-5" aria-hidden />
+          <NamedIcon name={service.iconName} className="size-5" aria-hidden />
         </span>
         <h2
           className={`${reversed ? 'reveal-left' : 'reveal-right'} mt-5 font-display text-[28px] leading-tight font-semibold tracking-[-0.02em] text-foreground sm:text-3xl lg:text-4xl`}

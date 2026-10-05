@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionTitle } from '@/components/ui/section-title'
 import type { ServiceItem } from '@/content/pages'
-import { getIcon } from '@/lib/icons'
+import { NamedIcon } from '@/components/ui/named-icon'
 
 /** Aperçu des 4 premiers services sur l'accueil (contenu de la page Services). */
 export function ServicesPreview({
@@ -22,13 +22,12 @@ export function ServicesPreview({
         <SectionTitle eyebrow={intro.eyebrow} title={intro.title} description={intro.description} />
         <ul className="mt-14 grid gap-5 sm:grid-cols-2">
           {services.slice(0, 4).map((s, i) => {
-            const Icon = getIcon(s.iconName)
             return (
               <li key={s.title || i} className="reveal-scale" style={{ '--stagger': i } as CSSProperties}>
                 <Card className="h-full rounded-2xl border-border/80 bg-card/70 shadow-[var(--shadow-sm)] ring-1 ring-foreground/5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
                   <CardHeader>
                     <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
-                      <Icon className="size-5" aria-hidden />
+                      <NamedIcon name={s.iconName} className="size-5" aria-hidden />
                     </span>
                     <CardTitle className="font-display text-base">
                       <h3>{s.title}</h3>

@@ -1,40 +1,15 @@
-'use client'
-
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
+import { ScrollerButtons, ScrollerProgress } from '@/components/sections/scroller-controls'
 
-const CARD_WIDTH = 340
-const GAP = 20
+const TRACK_ID = 'galerie-accueil'
 
 /**
- * Carrousel photo de l'accueil : défilement natif avec aimantation (glisser au
- * doigt, molette, clavier), boutons et barre de progression. Aucune bibliothèque.
+ * Carrousel photo de l'accueil : défilement natif aimanté (doigt, molette,
+ * clavier), rendu côté serveur ; seuls les boutons et la barre de progression
+ * sont des îlots client.
  */
 export function GalleryCarousel({ eyebrow, title, images }: { eyebrow: string; title: string; images: string[] }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    const track = trackRef.current
-    if (!track) return
-    const update = () => {
-      const max = track.scrollWidth - track.clientWidth
-      setProgress(max > 0 ? track.scrollLeft / max : 0)
-    }
-    update()
-    track.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      track.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [])
-
-  const slide = (dir: -1 | 1) => trackRef.current?.scrollBy({ left: dir * (CARD_WIDTH + GAP), behavior: 'smooth' })
-
   return (
     <section className="border-b border-border/60 bg-background">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
@@ -43,32 +18,11 @@ export function GalleryCarousel({ eyebrow, title, images }: { eyebrow: string; t
             <p className="font-display text-xs font-semibold tracking-[0.22em] text-primary uppercase">{eyebrow}</p>
             <h2 className="font-display text-2xl tracking-tight text-foreground sm:text-3xl">{title}</h2>
           </div>
-          <div className="flex shrink-0 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-10 rounded-full sm:size-11"
-              aria-label="Photo précédente"
-              onClick={() => slide(-1)}
-            >
-              <ChevronLeft className="size-5" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="size-10 rounded-full sm:size-11"
-              aria-label="Photo suivante"
-              onClick={() => slide(1)}
-            >
-              <ChevronRight className="size-5" />
-            </Button>
-          </div>
+          <ScrollerButtons targetId={TRACK_ID} />
         </div>
 
         <div
-          ref={trackRef}
+          id={TRACK_ID}
           role="region"
           aria-label="Galerie photos"
           tabIndex={0}
@@ -91,14 +45,7 @@ export function GalleryCarousel({ eyebrow, title, images }: { eyebrow: string; t
           ))}
         </div>
 
-        <div className="mt-6 flex justify-center" aria-hidden>
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full origin-left rounded-full bg-primary/60 transition-transform duration-150"
-              style={{ transform: `scaleX(${Math.max(progress, 0.02)})` }}
-            />
-          </div>
-        </div>
+        <ScrollerProgress targetId={TRACK_ID} />
       </div>
     </section>
   )

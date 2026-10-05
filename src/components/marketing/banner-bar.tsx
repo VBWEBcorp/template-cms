@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 
 import { type MarketingSettings, safeLink } from '@/lib/marketing'
-import { cn } from '@/lib/utils'
+import { cx as cn } from '@/lib/cx'
 
 /**
  * Bandeau d'annonce au-dessus de la barre de navigation.

@@ -47,14 +47,15 @@ export function stripTags(html: string): string {
 
 /** Retire une numérotation de tête : « 1. », « 2) », « 3 - », « IV. », « Étape 2 : » non. */
 export function stripNumbering(text: string): string {
-  return text.replace(/^\s*(?:\d+(?:\.\d+)*|[ivxlc]+)\s*[.)\-:–—]\s*/i, '').trim()
+  // Les deux tirets longs du jeu de caractères Unicode parfois présents dans les titres reçus (jamais écrits ici).
+  return text.replace(/^\s*(?:\d+(?:\.\d+)*|[ivxlc]+)\s*[.)\-:\u2013\u2014]\s*/i, '').trim()
 }
 
 /** Forme de comparaison : sans accents, numérotation, ponctuation ni casse. */
 export function normalizeForMatch(text: string): string {
   return stripNumbering(decodeEntities(text))
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[’'`]/g, ' ')
     .replace(/[^a-z0-9: ]+/g, ' ')
@@ -68,7 +69,7 @@ export function slugifyHeading(text: string): string {
   return (
     stripNumbering(text)
       .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .replace(/[’']/g, '-')
       .replace(/[^a-z0-9]+/g, '-')

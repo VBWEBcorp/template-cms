@@ -1,9 +1,8 @@
 import type { MetadataRoute } from 'next'
 
-import { siteConfig } from '@/lib/seo'
+import { siteConfig } from '@/config/site'
 
-// Web App Manifest (PWA). Next le sert sur /manifest.webmanifest et injecte le
-// <link rel="manifest">. Corrige l'absence de manifest relevée par les audits.
+/** Manifeste web (/manifest.webmanifest), lien ajouté automatiquement par Next. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: siteConfig.name,
@@ -12,11 +11,11 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: siteConfig.themeColor,
-    lang: siteConfig.locale.split('_')[0],
+    theme_color: siteConfig.theme.themeColor,
+    lang: siteConfig.lang,
     icons: [
-      { src: '/favicon.svg', type: 'image/svg+xml', sizes: 'any' },
-      { src: '/apple-icon', type: 'image/png', sizes: '180x180' },
+      { src: '/icon.png', type: 'image/png', sizes: '512x512', purpose: 'any' },
+      { src: '/apple-icon.png', type: 'image/png', sizes: '180x180' },
     ],
   }
 }

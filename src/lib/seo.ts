@@ -1,61 +1,98 @@
-// URL canonique du site, pilotée par env pour rester un template réutilisable.
-// NE JAMAIS laisser un domaine en dur : chaque canonical/og:url/sitemap en découle.
-// En dev, on retombe sur localhost (URLs volontairement non indexables).
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/+$/, '')
+import type { Metadata } from 'next'
 
-// Profils sociaux -> Organization.sameAs. NEXT_PUBLIC_SOCIAL_LINKS="https://...,https://..."
-const socialLinks = (process.env.NEXT_PUBLIC_SOCIAL_LINKS ?? '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean)
+import { siteConfig } from '@/config/site'
 
-export const siteConfig = {
-  // Nom de la marque, piloté par env (NEXT_PUBLIC_SITE_NAME) par site.
-  name: process.env.NEXT_PUBLIC_SITE_NAME ?? 'Nom Entreprise',
-  url: siteUrl,
-  locale: 'fr_FR',
-  description:
-    'Votre entreprise - description courte et percutante de votre activité. Adaptez cette ligne à votre domaine.',
-  // Image OG générée dynamiquement (src/app/opengraph-image.tsx), sans binaire.
-  ogImage: `${siteUrl}/opengraph-image`,
-  // Logo raster carré (>=112px) pour Organization.logo (src/app/apple-icon.tsx).
-  logo: `${siteUrl}/apple-icon`,
-  // Émis seulement si configuré (évite un twitter:site placeholder).
-  twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE ?? '',
-  themeColor: '#6d28d9',
-  phone: '+33 1 23 45 67 89',
-  email: 'contact@example.com',
-  address: {
-    street: '12 Rue Exemple',
-    city: 'Paris',
-    postalCode: '75001',
-    country: 'FR',
-  },
-  social: socialLinks,
+/**
+ * Métadonnées des pages.
+ *
+ * Next fusionne `openGraph` EN SURFACE entre le layout et la page : une page
+ * qui déclare openGraph sans `images` efface l'image du layout. Toutes les
+ * pages passent donc par `buildMetadata`, qui repose toujours l'image de
+ * partage (celle de la page ou DEFAULT_OG_IMAGE).
+ */
+
+export const TITLE_MAX = 60
+export const DESCRIPTION_MAX = 155
+
+/** Image de partage par défaut (1200 x 630), générée par `npm run images`. */
+export const DEFAULT_OG_IMAGE = {
+  url: '/og-default.png',
+  width: 1200,
+  height: 630,
+  alt: siteConfig.name,
 } as const
 
-export type SeoMeta = {
-  title?: string
-  description?: string
-  canonical?: string
-  ogImage?: string
-  ogType?: 'website' | 'article'
+/** Adresse absolue à partir d'un chemin du site (ou d'une adresse déjà absolue). */
+export function absoluteUrl(pathOrUrl: string): string {
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl
+  return `${siteConfig.url}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`
+}
+
+/** Coupe proprement un texte trop long pour une balise (sans couper un mot). */
+export function truncate(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, ' ').trim()
+  if (clean.length <= max) return clean
+  const cut = clean.slice(0, max - 1)
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), max - 20)).replace(/[\s,;:.]+$/, '')}…`
+}
+
+type MetadataInput = {
+  /** Titre complet de la page (60 caractères max, sans le nom du site). */
+  title: string
+  description: string
+  /** Chemin de la page : sert à l'URL canonique absolue. */
+  path: string
+  image?: { url: string; width?: number; height?: number; alt?: string } | null
+  type?: 'website' | 'article'
+  publishedTime?: string
+  modifiedTime?: string
+  authors?: string[]
+  tags?: string[]
   noindex?: boolean
-  jsonLd?: Record<string, unknown>
+  /** true : le titre est utilisé tel quel, sans ajouter « | Nom du site ». */
+  absoluteTitle?: boolean
 }
 
-export function buildTitle(page?: string) {
-  if (!page) return siteConfig.name
-  return `${page} - ${siteConfig.name}`
-}
+export function buildMetadata(input: MetadataInput): Metadata {
+  // Le nom du site n'est ajouté que si le titre complet tient en 60 caractères.
+  const suffix = ` | ${siteConfig.name}`
+  const title =
+    !input.absoluteTitle && input.title.length + suffix.length <= TITLE_MAX
+      ? `${input.title}${suffix}`
+      : truncate(input.title, TITLE_MAX)
+  const description = truncate(input.description, DESCRIPTION_MAX)
+  const image = input.image?.url
+    ? { ...input.image, url: absoluteUrl(input.image.url), alt: input.image.alt || title }
+    : { ...DEFAULT_OG_IMAGE, url: absoluteUrl(DEFAULT_OG_IMAGE.url) }
 
-export const routes = [
-  '/',
-  '/a-propos',
-  '/services',
-  '/contact',
-  '/mentions-legales',
-  '/politique-de-confidentialite',
-  '/conditions-generales',
-  '/politique-cookies',
-] as const
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: absoluteUrl(input.path) },
+    openGraph: {
+      type: input.type ?? 'website',
+      locale: siteConfig.locale,
+      siteName: siteConfig.name,
+      url: absoluteUrl(input.path),
+      title,
+      description,
+      images: [image],
+      ...(input.type === 'article'
+        ? {
+            publishedTime: input.publishedTime,
+            modifiedTime: input.modifiedTime,
+            authors: input.authors,
+            tags: input.tags,
+          }
+        : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image.url],
+      ...(siteConfig.twitterHandle ? { site: siteConfig.twitterHandle } : {}),
+    },
+    ...(input.noindex ? { robots: { index: false, follow: true } } : {}),
+  }
+}

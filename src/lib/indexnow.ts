@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { siteConfig } from '@/lib/seo'
+import { siteConfig } from '@/config/site'
 
 /**
  * Soumission instantanée d'URLs à IndexNow (Bing, Yandex, Naver…).
